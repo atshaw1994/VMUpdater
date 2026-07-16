@@ -1,0 +1,128 @@
+﻿<Window x:Class="VMUpdater.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:local="clr-namespace:VMUpdater.Views" 
+        xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel, IsDesignTimeCreatable=True}"
+        mc:Ignorable="d"
+        Title="VMUpdater"
+        ResizeMode="NoResize"
+        Closing="Window_Closing"
+        Width="451" SizeToContent="Height">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TabControl x:Name="MainTabControl" Margin="12">
+            <TabItem Header="Settings">
+                <StackPanel Margin="2" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
+                    <GroupBox Header="VMX Path">
+                        <Grid Margin="2,0,2,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Content="Browse..." Margin="0,0,8,0" Command="{Binding BrowseFolderCommand}"/>
+                            <TextBox Text="{Binding VMXPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" />
+                        </Grid>
+                    </GroupBox>
+
+                    <GroupBox Header="Credentials">
+                        <Grid Margin="2,0,2,2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="48"/>
+                                <RowDefinition Height="48"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Label Target="UsernameTextBox" Content="Username:" Grid.Row="0" Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBox x:Name="UsernameTextBox" Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                 Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"/>
+                            <Label Target="PasswordTextBox" Content="Password:" Grid.Row="1" Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBox x:Name="PasswordTextBox" Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                 Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"/>
+                        </Grid>
+                    </GroupBox>
+
+                    <GroupBox Header="Schedule">
+                        <Grid Margin="2,0,2,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Every" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="ScheduleComboBox"
+                                      ItemsSource="{Binding DaysOfWeek}" 
+                                      SelectedItem="{Binding SelectedDay, UpdateSourceTrigger=PropertyChanged}"
+                                      Grid.Column="1"
+                                      Margin="4,0"/>
+                            <TextBlock Text="at" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Center" Grid.Column="2"/>
+                            <local:TimePicker Grid.Column="3" Margin="4,0,0,0" SelectedTime="{Binding SelectedTime}"/>
+                        </Grid>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Log">
+                <TextBox x:Name="LogTextBox" Height="300" IsReadOnly="True" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" 
+                         Text="{Binding LogText}" Loaded="LogTextBox_Loaded"  TextChanged="LogTextBox_TextChanged" />
+            </TabItem>
+        </TabControl>
+
+        <Grid Grid.Row="1" Margin="12,0,12,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Last Successful Update:"/>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Right">
+                            <Run Text="{Binding LastSuccessfulUpdate, StringFormat={}{0:dddd\, MMMM d}, Mode=OneWay}"/>
+                            <Run Text=" at "/>
+                            <Run Text="{Binding LastSuccessfulUpdate, StringFormat={}{0:hh:mmtt}, Mode=OneWay}"/>
+            </TextBlock>
+            <TextBlock Text="Next Update:" Grid.Row="1"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right">
+                            <Run Text="{Binding NextUpdate, StringFormat={}{0:dddd\, MMMM d}, Mode=OneWay}"/>
+                            <Run Text=" at "/>
+                            <Run Text="{Binding NextUpdate, StringFormat={}{0:hh:mmtt}, Mode=OneWay}"/>
+            </TextBlock>
+        </Grid>
+
+        <Button Content="Update Now" Grid.Row="2" Margin="12,0,12,8" Command="{Binding StartForceUpdateCommand}" HorizontalAlignment="Stretch"/>
+
+        <StatusBar Grid.Row="3" HorizontalContentAlignment="Stretch">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem HorizontalAlignment="Left">
+                <TextBlock Text="{Binding StatusMessage}" d:Text="Ready." />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1"  HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Width="150" d:Value="50" />
+                    <TextBlock x:Name="ProgressBarPercentTextBlock" Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" Margin="6,0" d:Text="50%" />
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
