@@ -2,22 +2,13 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="VMUpdater.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="vmxPath" Type="System.String" Scope="User">
+    <Setting Name="VMRunPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="vmUsername" Type="System.String" Scope="User">
+    <Setting Name="VBoxManagePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="vmPassword" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="scheduleDay" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="scheduleTime" Type="System.DateTime" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="LastUpdateRan" Type="System.DateTime" Scope="User">
+    <Setting Name="QEMUExecutablePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>

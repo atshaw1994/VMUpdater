@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using VMUpdater.Models;
 using VMUpdater.ViewModels;
 
 namespace VMUpdater.Views
@@ -17,6 +19,30 @@ namespace VMUpdater.Views
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
+        }
+
+        private void CollectionViewSource_VmWareFilter(object sender, FilterEventArgs e)
+        {
+            if (e.Item is VirtualMachineViewModel vmViewModel)
+                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.VMWare;
+            else
+                e.Accepted = false;
+        }
+
+        private void CollectionViewSource_VirtualBoxFilter(object sender, FilterEventArgs e)
+        {
+            if (e.Item is VirtualMachineViewModel vmViewModel)
+                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.VirtualBox;
+            else
+                e.Accepted = false;
+        }
+
+        private void CollectionViewSource_QemuFilter(object sender, FilterEventArgs e)
+        {
+            if (e.Item is VirtualMachineViewModel vmViewModel)
+                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.QEMU;
+            else
+                e.Accepted = false;
         }
 
         private void LogTextBox_Loaded(object sender, RoutedEventArgs e)

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace VMUpdater.Views
 {
+    /// <summary>
+    /// Interaction logic for TimePicker.xaml
+    /// </summary>
     public partial class TimePicker : UserControl
     {
         private bool _isSynchronizing;

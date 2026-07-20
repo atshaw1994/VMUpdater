@@ -28,7 +28,6 @@
     </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="Screenshots\" />
   </ItemGroup>
 

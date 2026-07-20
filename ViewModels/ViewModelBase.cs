@@ -34,6 +34,15 @@ namespace VMUpdater.ViewModels
             return true;
         }
 
+        protected bool SetProperty<T>(Func<T> getValue, Action<T> setValue, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(getValue(), value))
+                return false;
+            setValue(value);
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
         /// <summary>
         /// Safely marshals an action back to the UI thread.
         /// Essential for updating properties from background worker tasks/threads.

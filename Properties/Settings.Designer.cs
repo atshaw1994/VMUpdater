@@ -12,7 +12,7 @@ namespace VMUpdater.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.7.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.8.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,70 +26,36 @@ namespace VMUpdater.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string vmxPath {
+        public string VMRunPath {
             get {
-                return ((string)(this["vmxPath"]));
+                return ((string)(this["VMRunPath"]));
             }
             set {
-                this["vmxPath"] = value;
+                this["VMRunPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string vmUsername {
+        public string VBoxManagePath {
             get {
-                return ((string)(this["vmUsername"]));
+                return ((string)(this["VBoxManagePath"]));
             }
             set {
-                this["vmUsername"] = value;
+                this["VBoxManagePath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string vmPassword {
+        public string QEMUExecutablePath {
             get {
-                return ((string)(this["vmPassword"]));
+                return ((string)(this["QEMUExecutablePath"]));
             }
             set {
-                this["vmPassword"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string scheduleDay {
-            get {
-                return ((string)(this["scheduleDay"]));
-            }
-            set {
-                this["scheduleDay"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.DateTime scheduleTime {
-            get {
-                return ((global::System.DateTime)(this["scheduleTime"]));
-            }
-            set {
-                this["scheduleTime"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.DateTime LastUpdateRan {
-            get {
-                return ((global::System.DateTime)(this["LastUpdateRan"]));
-            }
-            set {
-                this["LastUpdateRan"] = value;
+                this["QEMUExecutablePath"] = value;
             }
         }
     }

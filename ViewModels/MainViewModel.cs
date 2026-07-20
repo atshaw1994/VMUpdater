@@ -1,148 +1,51 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using VMUpdater.Helpers;
+using VMUpdater.Models;
+using VMUpdater.Services;
 using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
 {
-    public partial class MainViewModel : ViewModelBase
+    public class MainViewModel : ViewModelBase
     {
         private readonly string _logFilePath;
-        private bool _isLoading;
-        private static bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(new DependencyObject());
+        private readonly VirtualMachineService _vmService;
         public Action<string>? OnTooltipRefreshRequested { get; set; }
-        public ObservableCollection<string> DaysOfWeek { get; } = [
-            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-        ];
+        public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
+
+        public MainViewModel()
+        {
+            _vmService = new();
+            VirtualMachines = [];
+            string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            if (!Directory.Exists(logFolder))
+                Directory.CreateDirectory(logFolder);
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
+
+            ShowMainWindowCommand = new RelayCommand(execute: ExecuteShowMainWindow);
+            ShowLogCommand = new RelayCommand(execute: ExecuteShowLog);
+            AddVirtualMachineCommand = new RelayCommand<string>(AddVirtualMachine);
+            RemoveVirtualMachineCommand = new RelayCommand<VirtualMachineViewModel>(RemoveVirtualMachine);
+            BrowseForVMWareExecutableCommand = new RelayCommand(BrowseForVMWareExecutable);
+            BrowseForVirtualBoxExecutableCommand = new RelayCommand(BrowseForVirtualBoxExecutable);
+            BrowseForQEMUExecutableCommand = new RelayCommand(BrowseForQEMUExecutable);
+            ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+            InitializeApplicationProfiles();
+            LogMessage("Logging profile initialized.");
+        }
 
         #region Properties
-        private string _selectedDay = "Sunday";
-        public string SelectedDay
-        {
-            get => _selectedDay;
-            set
-            {
-                if (SetProperty(ref _selectedDay, value, nameof(SelectedDay)))
-                { 
-                    CalculateNextScheduledUpdate();
-                    SaveProfileConfigurationSilently();
-                }
-            }
-        }
-
-        private DateTime? _selectedTime = DateTime.Now;
-        public DateTime? SelectedTime
-        {
-            get => _selectedTime;
-            set
-            {
-                if (SetProperty(ref _selectedTime, value, nameof(SelectedTime)))
-                {
-                    CalculateNextScheduledUpdate();
-                    SaveProfileConfigurationSilently();
-                }
-            }
-        }
-
-        private string _username = string.Empty;
-        public string Username
-        {
-            get => _username;
-            set
-            {
-                if (SetProperty(ref _username, value, nameof(Username)))
-                {
-                    SaveProfileConfigurationSilently();
-                }
-            }
-        }
-
-        private string _password = string.Empty;
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                if (SetProperty(ref _password, value, nameof(Password)))
-                {
-                    SaveProfileConfigurationSilently();
-                }
-            }
-        }
-
-        private string _vmxPath = string.Empty;
-        public string VMXPath
-        {
-            get => _vmxPath;
-            set
-            {
-                if (SetProperty(ref _vmxPath, value, nameof(VMXPath)))
-                {
-                    SaveProfileConfigurationSilently();
-                }
-            }
-        }
-
-        private DateTime _lastSuccessfulUpdate = DateTime.MinValue;
-        public DateTime LastSuccessfulUpdate
-        {
-            get => _lastSuccessfulUpdate;
-            set
-            {
-                if (SetProperty(ref _lastSuccessfulUpdate, value, nameof(LastSuccessfulUpdate)))
-                {
-                    OnPropertyChanged(nameof(TrayToolTipText));
-                    OnTooltipRefreshRequested?.Invoke(TrayToolTipText);
-                }
-            }
-        }
-        
-        public string TrayToolTipText
-        {
-            get
-            {
-                string statusText = IsUpdating 
-                    ? "Updating..." 
-                    : (LastSuccessfulUpdate == DateTime.MinValue
-                        ? "Last Update: Never" 
-                        : $"Last Update: {LastSuccessfulUpdate:dddd, MMMM d}");
-
-                return $"VMUpdater\n{statusText}";
-            }
-        }
-
-        private DateTime _nextUpdate = DateTime.MinValue;
-        public DateTime NextUpdate
-        {
-            get => _nextUpdate;
-            set => SetProperty(ref _nextUpdate, value, nameof(NextUpdate));
-        }
-
-        private string _logText = string.Empty;
-        public string LogText
-        {
-            get => _logText;
-            set => SetProperty(ref _logText, value, nameof(LogText));
-        }
-
-        private string _statusMessage = "Ready.";
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => SetProperty(ref _statusMessage, value, nameof(StatusMessage));
-        }
-
         private double _updateProgress = 0.0;
-        public double UpdateProgress
-        {
-            get => _updateProgress;
-            set => SetProperty(ref _updateProgress, value, nameof(UpdateProgress));
-        }
-
         private bool _isUpdating = false;
+        private string _logText = string.Empty;
+        private string _statusMessage = "Ready.";
+        public double UpdateProgress { get => _updateProgress; set => SetProperty(ref _updateProgress, value, nameof(UpdateProgress)); }
         public bool IsUpdating
         {
             get => _isUpdating;
@@ -155,47 +58,56 @@ namespace VMUpdater.ViewModels
                 }
             }
         }
+        public string TrayToolTipText
+        {
+            get
+            {
+                string statusText = IsUpdating ? "Updating..." : $"All VMs Updated.";
+
+                return $"VMUpdater\n{statusText}";
+            }
+        }
+        public string LogText { get => _logText; set => SetProperty(ref _logText, value, nameof(LogText)); }
+        public string StatusMessage { get => _statusMessage; set => SetProperty(ref _statusMessage, value, nameof(StatusMessage)); }
+        public string VMWareExecutablePath
+        {
+            get => Properties.Settings.Default.VMRunPath;
+            set
+            {
+                if (SetProperty(() => Properties.Settings.Default.VMRunPath, val => Properties.Settings.Default.VMRunPath = val, value))
+                    Properties.Settings.Default.Save();
+            }
+        }
+        public string VirtualBoxExecutablePath
+        {
+            get => Properties.Settings.Default.VBoxManagePath;
+            set
+            {
+                if (SetProperty(() => Properties.Settings.Default.VBoxManagePath, val => Properties.Settings.Default.VBoxManagePath = val, value))
+                    Properties.Settings.Default.Save();
+            }
+        }
+        public string QEMUExecutablePath
+        {
+            get => Properties.Settings.Default.QEMUExecutablePath;
+            set
+            {
+                if (SetProperty(() => Properties.Settings.Default.QEMUExecutablePath, val => Properties.Settings.Default.QEMUExecutablePath = val, value))
+                    Properties.Settings.Default.Save();
+            }
+        }
         #endregion
 
         #region Commands
-        public ICommand StartUpdateCommand { get; }
-        public ICommand StartForceUpdateCommand { get; }
-        public ICommand BrowseFolderCommand { get; }
         public ICommand ShowMainWindowCommand { get; }
         public ICommand ShowLogCommand { get; }
+        public ICommand AddVirtualMachineCommand { get; }
+        public ICommand RemoveVirtualMachineCommand { get; }
+        public ICommand BrowseForVMWareExecutableCommand { get; }
+        public ICommand BrowseForVirtualBoxExecutableCommand { get; }
+        public ICommand BrowseForQEMUExecutableCommand { get; }
         public ICommand ExitCommand { get; }
         #endregion
-
-        public MainViewModel()
-        {
-            if (IsInDesignMode)
-            {
-                // Set up mock data so the designer looks pretty!
-                SelectedDay = "Monday";
-                VMXPath = @"Path/To/VMX.vmx";
-                Username = "username";
-                Password = "password";
-                return;
-            }
-
-            // Setup File Logging Directory matching your WinForms initialization
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            if (!Directory.Exists(logFolder)) 
-                Directory.CreateDirectory(logFolder);
-            _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
-
-            // Commands Configuration
-            StartUpdateCommand      =   new RelayCommand(execute: async () => await ExecuteStartUpdate(forceUpdate: false));
-            StartForceUpdateCommand =   new RelayCommand(execute: async () => await ExecuteStartUpdate(forceUpdate: true));
-            BrowseFolderCommand     =   new RelayCommand(execute: BrowseForVMXFile);
-            ShowMainWindowCommand   =   new RelayCommand(execute: ExecuteShowMainWindow);
-            ShowLogCommand          =   new RelayCommand(execute: ExecuteShowLog);
-            ExitCommand             =   new RelayCommand(execute: () => Application.Current.Shutdown());
-
-            LoadProfileConfiguration();
-            LogMessage("Logging profile initialized.");
-        }
 
         private void ExecuteShowMainWindow()
         {
@@ -220,6 +132,127 @@ namespace VMUpdater.ViewModels
             }
         }
 
+        private void AddVirtualMachine(string? hypervisorType)
+        {
+            var newModel = new VirtualMachineModel
+            {
+                VMPath = string.Empty,
+                Username = string.Empty,
+                Password = string.Empty,
+                ScheduleDay = "Monday",
+                ScheduleTime = DateTime.Now
+            };
+
+            if (hypervisorType!.Equals("VMWare", StringComparison.OrdinalIgnoreCase))
+                newModel.Hypervisor = HypervisorType.VMWare;
+            else if (hypervisorType.Equals("VirtualBox", StringComparison.OrdinalIgnoreCase))
+                newModel.Hypervisor = HypervisorType.VirtualBox;
+            else if (hypervisorType.Equals("QEMU", StringComparison.OrdinalIgnoreCase))
+                newModel.Hypervisor = HypervisorType.QEMU;
+            else
+            {
+                LogMessage($"Unknown hypervisor type: {hypervisorType}. Defaulting to VMWare.");
+                newModel.Hypervisor = HypervisorType.VMWare;
+            }
+
+            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, CollapseSiblings) { IsExpanded = true };
+
+            newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+
+            VirtualMachines.Add(newItemViewModel);
+        }
+        private void RemoveVirtualMachine(VirtualMachineViewModel? itemToRemove)
+        {
+            if (itemToRemove != null)
+            {
+                VirtualMachines.Remove(itemToRemove);
+                _vmService.DeleteVirtualMachineEntry(itemToRemove.Model);
+            }
+        }
+        private void CollapseSiblings(VirtualMachineViewModel expandedItem)
+        {
+            foreach (var vm in VirtualMachines.Where(vm => vm != expandedItem))
+                vm.IsExpanded = false;
+        }
+        public async Task ExecuteStartUpdate(VirtualMachineViewModel vm, bool forceUpdate = false)
+        {
+            if (IsUpdating) return;
+            if (forceUpdate) LogMessage("User started manual update.");
+
+            IsUpdating = true;
+            UpdateProgress = 10;
+            StatusMessage = "Starting...";
+
+            try
+            {
+                // Invoke service layer passing functional callback hooks 
+                await _vmService!.StartUpdateAsync(
+                    vm.Model,
+                    report => Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // This safely executes on the UI thread
+                        if (report.ProgressDelta > 0) UpdateProgress = report.ProgressDelta;
+                        if (!string.IsNullOrEmpty(report.StatusText)) StatusMessage = report.StatusText;
+                        if (!string.IsNullOrEmpty(report.LogText)) LogMessage(report.LogText);
+                    }),
+                    RunProcessAsync
+                );
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Fatal Processing Exception: {ex.Message}");
+                StatusMessage = "Update process encountered a fatal error.";
+            }
+            finally
+            {
+                IsUpdating = false;
+                UpdateProgress = 0;
+                StatusMessage = "Ready.";
+                vm.LastUpdate = DateTime.Now;
+                _vmService!.SaveVirtualMachineEntry(vm.Model);
+                if (!forceUpdate) vm.CalculateNextScheduledUpdate();
+            }
+        }
+        private Task<int> RunProcessAsync(string fileName, string arguments)
+        {
+            var tcs = new TaskCompletionSource<int>();
+            Trace.WriteLine($"RunProcessAsync({fileName}, {arguments})");
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                WorkingDirectory = Path.GetDirectoryName(fileName),
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
+
+            var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
+
+            process.Exited += (s, e) =>
+            {
+                string err = process.StandardError.ReadToEnd();
+                string outText = process.StandardOutput.ReadToEnd(); // Grab stdout as well
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (!string.IsNullOrWhiteSpace(outText))
+                        LogMessage($"[Console Output]: {outText.Trim()}");
+
+                    if (!string.IsNullOrWhiteSpace(err))
+                        LogMessage($"[Process StandardError]: {err.Trim()}");
+                });
+
+                tcs.SetResult(process.ExitCode);
+                process.Dispose();
+            };
+
+            try { process.Start(); }
+            catch (Exception ex) { LogMessage($"Process failed start parameters initialization: {ex.Message}"); tcs.SetResult(-1); }
+
+            return tcs.Task;
+        }
         public void LogMessage(string message)
         {
             try
@@ -233,191 +266,67 @@ namespace VMUpdater.ViewModels
             }
             catch { /* Prevent filesystem context lock crashes */ }
         }
-
-        private void CalculateNextScheduledUpdate()
-        {
-            if (string.IsNullOrEmpty(SelectedDay) || !SelectedTime.HasValue) return;
-
-            if (Enum.TryParse(SelectedDay, true, out DayOfWeek targetDay))
-            {
-                DateTime now = DateTime.Now;
-                DateTime timeTarget = SelectedTime.Value;
-                DateTime calculated = new(now.Year, now.Month, now.Day, timeTarget.Hour, timeTarget.Minute, 0);
-
-                while (calculated.DayOfWeek != targetDay)
-                {
-                    calculated = calculated.AddDays(1);
-                }
-
-                if (calculated < now)
-                {
-                    calculated = calculated.AddDays(7);
-                }
-
-                NextUpdate = calculated;
-            }
-        }
-
-        private void BrowseForVMXFile()
+        private void BrowseForVMWareExecutable()
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "VMware Configuration (*.vmx)|*.vmx",
-                Title = "Select Virtual Machine VMX Configuration Target File"
+                Filter = "Executable Files (*.exe)|*.exe",
+                Title = "Select vmrun.exe",
+                InitialDirectory = "C:\\Program Files (x86)\\VMware\\VMware Workstation"
             };
 
-            if (dialog.ShowDialog() == true) VMXPath = dialog.FileName;
-        }
-
-        private void LoadProfileConfiguration()
-        {
-            if (IsInDesignMode || Properties.Settings.Default == null) return;
-            _isLoading = true; // Block saves during initialization
-            try
+            if (dialog.ShowDialog() == true)
             {
-                // Wire your properties to your global persistent app context model
-                VMXPath = Properties.Settings.Default.vmxPath;
-                Username = Properties.Settings.Default.vmUsername;
-                Password = Properties.Settings.Default.vmPassword;
-                SelectedDay = !string.IsNullOrEmpty(Properties.Settings.Default.scheduleDay) ? Properties.Settings.Default.scheduleDay : "Sunday";
-
-                if (Properties.Settings.Default.scheduleTime != DateTime.MinValue)
-                    SelectedTime = Properties.Settings.Default.scheduleTime;
-
-                LastSuccessfulUpdate = Properties.Settings.Default.LastUpdateRan;
-                CalculateNextScheduledUpdate();
-            }
-            finally
-            {
-                _isLoading = false; // Re-enable saving for normal UI operations
+                Properties.Settings.Default.VMRunPath = dialog.FileName;
+                Properties.Settings.Default.Save();
             }
         }
-
-        /// <summary>
-        /// Saves changes silently to user settings during real-time UI manipulation without flooding the execution logs.
-        /// </summary>
-        private void SaveProfileConfigurationSilently()
+        private void BrowseForVirtualBoxExecutable()
         {
-            if (_isLoading) return;
-
-            Properties.Settings.Default.vmxPath = VMXPath;
-            Properties.Settings.Default.vmUsername = Username;
-            Properties.Settings.Default.vmPassword = Password;
-            Properties.Settings.Default.scheduleDay = SelectedDay;
-            Properties.Settings.Default.scheduleTime = SelectedTime ?? DateTime.MinValue;
-            Properties.Settings.Default.Save();
-        }
-
-        public async Task ExecuteStartUpdate(bool forceUpdate = false)
-        {
-            if (IsUpdating) return;
-            if (forceUpdate) LogMessage("User started manual update.");
-
-            string vmrunPath = @"C:\Program Files (x86)\VMware\VMware Workstation\vmrun.exe";
-            IsUpdating = true;
-            UpdateProgress = 10;
-            LogMessage("Initializing automated execution loop headlessly...");
-            StatusMessage = "Starting update process...";
-
-            bool executionSucceeded = false;
-
-            try
+            var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                // Step 1: Headless Invocation
-                await RunProcessAsync(vmrunPath, $"-T ws start \"{VMXPath}\" nogui");
-                UpdateProgress = 25;
+                Filter = "Executable Files (*.exe)|*.exe",
+                Title = "Select VBoxManage.exe",
+                InitialDirectory = "C:\\Program Files\\Oracle\\VirtualBox"
+            };
 
-                // Step 2: Static boot wait
-                LogMessage("Allowing 45-second stabilization period for system kernel guest components...");
-                StatusMessage = "Stabilizing system components...";
-                await Task.Delay(45000);
-                UpdateProgress = 50;
+            if (dialog.ShowDialog() == true)
+            {
+                Properties.Settings.Default.VBoxManagePath = dialog.FileName;
+                Properties.Settings.Default.Save();
+            }
+        }
+        private void BrowseForQEMUExecutable()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Executable Files (*.exe)|*.exe",
+                Title = "Select qemu.exe",
+                InitialDirectory = "C:\\Program Files\\QEMU"
+            };
 
-                // Step 3: Network Check
-                LogMessage("Checking outward-bound routing connection from guest adapter...");
-                StatusMessage = "Performing network check...";
-                string pingArgs = $"-T ws -gu \"{Username}\" -gp \"{Password}\" runScriptInGuest \"{VMXPath}\" /bin/bash \"ping -c 3 8.8.8.8\"";
-                UpdateProgress = 60;
-                int pingCode = await RunProcessAsync(vmrunPath, pingArgs);
+            if (dialog.ShowDialog() == true)
+            {
+                Properties.Settings.Default.QEMUExecutablePath = dialog.FileName;
+                Properties.Settings.Default.Save();
+            }
+        }
+        public void InitializeApplicationProfiles()
+        {
+            List<VirtualMachineModel> models = VirtualMachineService.LoadVirtualMachineEntries();
 
-                if (pingCode != 0)
+            foreach (var model in models)
+            {
+                var vmViewModel = new VirtualMachineViewModel(model, _vmService, CollapseSiblings)
                 {
-                    LogMessage($"Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}");
-                    StatusMessage = "Aborted: Network connectivity validation failed.";
-                    return;
-                }
+                    DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine"
+                };
 
-                // Step 4: Upgrade Transaction Execution
-                LogMessage("Updating Arch keyring to prevent signature issues...");
-                StatusMessage = "Updating keyrings...";
-                // Update keyring first to avoid signature errors
-                string keyringArgs = $"-T ws -gu \"{Username}\" -gp \"{Password}\" runScriptInGuest \"{VMXPath}\" /bin/bash \"echo '{Password}' | sudo -S pacman -Sy --noconfirm archlinux-keyring\"";
-                await RunProcessAsync(vmrunPath, keyringArgs);
-
-                LogMessage("Sending package transaction orders to guest system...");
-                StatusMessage = "Executing package transactions...";
-
-                string pacmanArgs = $"-T ws -gu \"{Username}\" -gp \"{Password}\" runScriptInGuest \"{VMXPath}\" /bin/bash \"yay -Syu --noconfirm\"";
-
-                UpdateProgress = 75;
-                int upgradeCode = await RunProcessAsync(vmrunPath, pacmanArgs);
+                vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+                vmViewModel.CalculateNextScheduledUpdate();
+                VirtualMachines.Add(vmViewModel);
+                Trace.WriteLine($"Loaded VM: {vmViewModel.DisplayName} from path: {model.VMPath} with hypervisor: {model.Hypervisor}");
             }
-            catch (Exception ex)
-            {
-                LogMessage($"Fatal Processing Exception: {ex.Message}");
-                StatusMessage = "Update process encountered a fatal error.";
-            }
-            finally
-            {
-                LogMessage("Terminating hypervisor profile gracefully...");
-                await RunProcessAsync(vmrunPath, $"-T ws stop \"{VMXPath}\" soft");
-
-                if (executionSucceeded)
-                {
-                    UpdateProgress = 100;
-                    // Let the user see the 100% full green bar and success message for 2 seconds
-                    await Task.Delay(2000);
-                }
-
-                // Clean up UI states
-                IsUpdating = false;
-                UpdateProgress = 0;
-
-                if (StatusMessage == "Starting update process..." || StatusMessage == "Terminating hypervisor profile...")
-                    StatusMessage = "Ready.";
-
-                if (!forceUpdate)
-                    CalculateNextScheduledUpdate();
-            }
-        }
-
-        private Task<int> RunProcessAsync(string fileName, string arguments)
-        {
-            var tcs = new TaskCompletionSource<int>();
-            var startInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                WorkingDirectory = Path.GetDirectoryName(fileName),
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true
-            };
-
-            var process = new System.Diagnostics.Process { StartInfo = startInfo, EnableRaisingEvents = true };
-
-            process.Exited += (s, e) =>
-            {
-                string err = process.StandardError.ReadToEnd();
-                if (!string.IsNullOrWhiteSpace(err)) LogMessage($"[Process StandardError Stream Output]: {err.Trim()}");
-                tcs.SetResult(process.ExitCode);
-                process.Dispose();
-            };
-
-            try { process.Start(); }
-            catch (Exception ex) { LogMessage($"Process failed start parameters initialization: {ex.Message}"); tcs.SetResult(-1); }
-
-            return tcs.Task;
         }
     }
 }

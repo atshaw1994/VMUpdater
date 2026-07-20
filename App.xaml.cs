@@ -67,15 +67,12 @@ namespace VMUpdater
                                ?? FindMenuItemByName(contextMenu, "MenuOpen");
                 var menuOpenLog = contextMenu.Template.FindName("MenuOpenLog", contextMenu) as MenuItem
                                   ?? FindMenuItemByName(contextMenu, "MenuOpenLog");
-                var menuUpdateNow = contextMenu.Template.FindName("MenuUpdateNow", contextMenu) as MenuItem
-                                    ?? FindMenuItemByName(contextMenu, "MenuUpdateNow");
                 var menuExit = contextMenu.Template.FindName("MenuExit", contextMenu) as MenuItem
                                ?? FindMenuItemByName(contextMenu, "MenuExit");
 
                 // Bind Commands
                 menuOpen?.Command = _viewModel.ShowMainWindowCommand;
                 menuOpenLog?.Command = _viewModel.ShowLogCommand;
-                menuUpdateNow?.Command = _viewModel.StartForceUpdateCommand;
                 menuExit?.Command = _viewModel.ExitCommand;
             }
         }
@@ -97,15 +94,18 @@ namespace VMUpdater
 
             DateTime now = DateTime.Now;
 
-            if (!string.Equals(now.DayOfWeek.ToString(), _viewModel.SelectedDay, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (_viewModel.NextUpdate != DateTime.MinValue &&
-                now.Hour == _viewModel.NextUpdate.Hour &&
-                now.Minute == _viewModel.NextUpdate.Minute)
+            foreach (var vm in _viewModel.VirtualMachines)
             {
-                _viewModel.LogMessage("Automated Cron Schedule parameters validated successfully. Commencing cycle...");
-                await _viewModel.ExecuteStartUpdate(forceUpdate: false);
+                if (!string.Equals(now.DayOfWeek.ToString(), vm.ScheduleDay, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                if (vm.Model.NextUpdate != DateTime.MinValue &&
+                    now.Hour == vm.Model.NextUpdate.Hour &&
+                    now.Minute == vm.Model.NextUpdate.Minute)
+                {
+                    _viewModel.LogMessage("Automated Cron Schedule parameters validated successfully. Commencing cycle...");
+                    await _viewModel.ExecuteStartUpdate(vm);
+                }
             }
         }
 
