@@ -82,6 +82,10 @@
                 </ComboBox>
 
                 <Grid Margin="0,2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -89,22 +93,13 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Username:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="UsernameTextBox" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox x:Name="UsernameTextBox" Grid.Column="1" Margin="0,0,0,4" VerticalAlignment="Center" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Password:" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="PasswordTextBox" Grid.Column="3" VerticalAlignment="Center" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-
-                <Grid Margin="0,2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="0.5*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Every" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="PasswordTextBox" Grid.Column="3" Margin="0,0,0,4" VerticalAlignment="Center" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Every" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="ScheduleComboBox" 
                               Grid.Column="1" 
-                              Margin="4,0" 
+                              Grid.Row="1"
                               SelectedValue="{Binding ScheduleDay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValuePath="Content">
                         <ComboBoxItem Content="Monday" />
@@ -115,8 +110,8 @@
                         <ComboBoxItem Content="Saturday" />
                         <ComboBoxItem Content="Sunday" />
                     </ComboBox>
-                    <TextBlock Text="at" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
-                    <local:TimePicker Grid.Column="3" Margin="4,0,0,0" SelectedTime="{Binding ScheduleTime, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="at" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
+                    <local:TimePicker Grid.Column="3" Grid.Row="1" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
 
                 <Grid Margin="0,2">
