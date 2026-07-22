@@ -123,6 +123,16 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <Style x:Key="ItemsControlWithScrollBarMargin" TargetType="ItemsControl" BasedOn="{StaticResource {x:Type ItemsControl}}">
+                <Setter Property="Margin" Value="0,0,0,0"/>
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=MainScrollViewer}" Value="Visible">
+                        <Setter Property="Margin" Value="0,0,15,0"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -39,11 +39,11 @@
         </Button>
 
         <Border x:Name="DetailsPanel" 
-                Background="{DynamicResource SubtleFillColorSecondaryBrush}" 
-                BorderBrush="{DynamicResource SurfaceStrokeColorDefaultBrush}" 
+                Background="{DynamicResource ControlFillColorDefaultBrush}" 
+                BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
                 BorderThickness="1,0,1,1" 
                 CornerRadius="0,0,4,4" 
-                Margin="16,0,8,8" 
+                Margin="16,0,0,8" 
                 Grid.Row="1">
             <Border.Style>
                 <Style TargetType="Border">
@@ -57,7 +57,7 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <StackPanel Margin="4">
+            <StackPanel Margin="4,8,4,4">
                 <StackPanel Margin="0,0,0,2">
                     <TextBlock Text="Path to virtual machine:"/>
                     <Grid>
@@ -124,8 +124,8 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="{Binding LastUpdateDisplayText}"/>
-                        <TextBlock Grid.Row="1" Text="{Binding NextUpdateDisplayText}"/>
+                        <TextBlock Text="{Binding LastUpdateDisplayText}" d:Text="Last Update: January 1, 0001 at 12:00 AM"/>
+                        <TextBlock Grid.Row="1" Text="{Binding NextUpdateDisplayText}" d:Text="Next Update: January 1, 0001 at 12:00 AM"/>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                         <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="4"
@@ -136,8 +136,8 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="&#xe74d;" FontFamily="Segoe Fluent Icons" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                <TextBlock Text="Delete" Grid.Column="1" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                <TextBlock Text="&#xe74d;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center"/>
+                                <TextBlock Text="Delete" Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0"/>
                             </Grid>
                         </Button>
 
@@ -147,8 +147,8 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="&#xE896;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons"  HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                <TextBlock Text="Update" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                <TextBlock Text="&#xE896;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center"/>
+                                <TextBlock Text="Update" Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0"/>
                             </Grid>
                         </Button>
                     </StackPanel>

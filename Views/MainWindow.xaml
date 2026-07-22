@@ -49,8 +49,9 @@
                             BorderThickness="1"
                             Margin="0,0,8,8"
                             Grid.Row="1">
-                        <ScrollViewer Margin="4">
-                            <ItemsControl x:Name="VmwareItemsControl" ItemsSource="{Binding Source={StaticResource VmwareFilteredSource}}">
+                        <ScrollViewer x:Name="MainScrollViewer" Margin="4" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="VmwareItemsControl" ItemsSource="{Binding Source={StaticResource VmwareFilteredSource}}"
+                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <views:VirtualMachineEntry Margin="0,0,0,8"/>
@@ -87,7 +88,8 @@
                             Margin="0,0,8,8"
                             Grid.Row="1">
                         <ScrollViewer Margin="8,4,8,8">
-                            <ItemsControl x:Name="VirtualBoxItemsControl" ItemsSource="{Binding Source={StaticResource VirtualBoxFilteredSource}}">
+                            <ItemsControl x:Name="VirtualBoxItemsControl" ItemsSource="{Binding Source={StaticResource VirtualBoxFilteredSource}}"
+                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <views:VirtualMachineEntry Margin="0,0,0,8"/>
@@ -124,7 +126,8 @@
                             Margin="0,0,8,8"
                             Grid.Row="1">
                         <ScrollViewer Margin="8,4,8,8">
-                            <ItemsControl x:Name="QEMUItemsControl" ItemsSource="{Binding Source={StaticResource QemuFilteredSource}}">
+                            <ItemsControl x:Name="QEMUItemsControl" ItemsSource="{Binding Source={StaticResource QemuFilteredSource}}"
+                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <views:VirtualMachineEntry Margin="0,0,0,8"/>
