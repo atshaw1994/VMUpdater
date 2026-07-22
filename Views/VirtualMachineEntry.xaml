@@ -152,8 +152,8 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="&#xe777;" FontFamily="Segoe Fluent Icons" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                <TextBlock Text="Update Now" Grid.Column="1" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                <TextBlock Text="&#xE896;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons"  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock Text="Update" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0,0,0"/>
                             </Grid>
                         </Button>
                     </StackPanel>

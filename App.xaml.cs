@@ -57,10 +57,12 @@ namespace VMUpdater
 
             var menuOpen = new MenuItem { Header = "Open", Command = _viewModel.ShowMainWindowCommand };
             var menuOpenLog = new MenuItem { Header = "Open Log", Command = _viewModel.ShowLogCommand };
+            var menuUpdateAll = new MenuItem { Header = "Update All", Command = _viewModel.UpdateAllCommand };
             var menuExit = new MenuItem { Header = "Exit", Command = _viewModel.ExitCommand };
 
             contextMenu.Items.Add(menuOpen);
             contextMenu.Items.Add(menuOpenLog);
+            contextMenu.Items.Add(menuUpdateAll);
             contextMenu.Items.Add(new Separator());
             contextMenu.Items.Add(menuExit);
 

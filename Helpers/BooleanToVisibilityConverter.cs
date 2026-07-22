@@ -15,10 +15,8 @@ namespace VMUpdater.Helpers
             if (parameter is string param && param.Equals("Inverse", StringComparison.OrdinalIgnoreCase))
             {
                 boolValue = !boolValue;
-                Trace.WriteLine($"BooleanToVisibilityConverter: Inverse parameter detected. Original value: {value}, Inverted value: {boolValue}");
             }
 
-            Trace.WriteLine($"BooleanToVisibilityConverter: Converting value: {value}, Resulting Visibility: {(boolValue ? "Visible" : "Collapsed")}");
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
 
