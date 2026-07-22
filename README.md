@@ -2,7 +2,7 @@
 
 A lightweight Windows desktop application that automates scheduled system updates for VMware Workstation virtual machines running Arch Linux (or any `yay`/`pacman`-based distro) — all without any manual interaction.
 
-<img src="Screenshots/MainWindow.png" alt="Main Window" width="400"/>
+<img src="Screenshots/MainWindow.png" alt="Main Window" />
 
 ## Overview
 

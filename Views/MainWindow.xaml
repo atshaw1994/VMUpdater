@@ -6,10 +6,11 @@
         xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
         xmlns:views="clr-namespace:VMUpdater.Views"
         xmlns:local="clr-namespace:VMUpdater"
+        Closing="Window_Closing"
         d:Foreground="Black"
         ThemeMode="System"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="VMUpdater" Height="450" Width="800">
     <Window.Resources>
         <CollectionViewSource x:Key="VmwareFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VmWareFilter"/>
         <CollectionViewSource x:Key="VirtualBoxFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VirtualBoxFilter"/>
@@ -42,9 +43,11 @@
 
                     <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
                             BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
-                            BorderThickness="1,1,0,0"
+                            CornerRadius="6"
+                            BorderThickness="1"
+                            Margin="0,0,8,8"
                             Grid.Row="1">
-                        <ScrollViewer Margin="8,4,8,8">
+                        <ScrollViewer Margin="4">
                             <ItemsControl x:Name="VmwareItemsControl" ItemsSource="{Binding Source={StaticResource VmwareFilteredSource}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -76,8 +79,10 @@
                     </StackPanel>
 
                     <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
-                            BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
-                            BorderThickness="1,1,0,0"
+                            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                            CornerRadius="6" 
+                            BorderThickness="1"
+                            Margin="0,0,8,8"
                             Grid.Row="1">
                         <ScrollViewer Margin="8,4,8,8">
                             <ItemsControl x:Name="VirtualBoxItemsControl" ItemsSource="{Binding Source={StaticResource VirtualBoxFilteredSource}}">
@@ -112,7 +117,9 @@
 
                     <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
                             BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
-                            BorderThickness="1,1,0,0"
+                            CornerRadius="6"
+                            BorderThickness="1"
+                            Margin="0,0,8,8"
                             Grid.Row="1">
                         <ScrollViewer Margin="8,4,8,8">
                             <ItemsControl x:Name="QEMUItemsControl" ItemsSource="{Binding Source={StaticResource QemuFilteredSource}}">
