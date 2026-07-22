@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:helpers="clr-namespace:VMUpdater.Helpers"
         xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
         xmlns:views="clr-namespace:VMUpdater.Views"
         xmlns:local="clr-namespace:VMUpdater"
@@ -12,6 +13,7 @@
         mc:Ignorable="d"
         Title="VMUpdater" Height="450" Width="800">
     <Window.Resources>
+        <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <CollectionViewSource x:Key="VmwareFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VmWareFilter"/>
         <CollectionViewSource x:Key="VirtualBoxFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VirtualBoxFilter"/>
         <CollectionViewSource x:Key="QemuFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_QemuFilter"/>
@@ -22,7 +24,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
-            <TabItem Header="VMWare" Width="128">
+            <TabItem Header="VMWare" Width="128"  IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -59,7 +61,7 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="VirtualBox">
+            <TabItem Header="VirtualBox" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -96,7 +98,7 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="QEMU">
+            <TabItem Header="QEMU" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -133,7 +135,7 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="Settings">
+            <TabItem Header="Settings" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                 <StackPanel Margin="8">
                     <GroupBox Header="VMWare Executable">
                         <Grid>
@@ -184,14 +186,39 @@
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem HorizontalAlignment="Left">
+
+            <!-- Left side: Status Message (Column 0 by default) -->
+            <StatusBarItem HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0">
                 <TextBlock Text="{Binding StatusMessage}" d:Text="Ready." />
             </StatusBarItem>
-            <StatusBarItem Grid.Column="1"  HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal" d:Visibility="Visible" Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Width="150" d:Value="50"/>
-                    <TextBlock x:Name="ProgressBarPercentTextBlock" Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" Margin="8,0,0,0" d:Text="50%" />
-                </StackPanel>
+
+            <!-- Right side: Update All / Progress Bar toggle (Column 1) -->
+            <StatusBarItem Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                <Grid>
+                    <!-- Show "Update All" when IsUpdating is false -->
+                    <Button Command="{Binding UpdateAllCommand}"
+                            Padding="10,3"
+                            Margin="2"
+                            Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE896;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center"/>
+                            <TextBlock Text="Update All" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Show Progress Bar when IsUpdating is true -->
+                    <StackPanel Orientation="Horizontal" 
+                                VerticalAlignment="Center"
+                                d:Visibility="Collapsed" 
+                                Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Width="150" Height="14" d:Value="50"/>
+                        <TextBlock x:Name="ProgressBarPercentTextBlock" 
+                                   Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" 
+                                   Margin="8,0,4,0" 
+                                   VerticalAlignment="Center"
+                                   d:Text="50%" />
+                    </StackPanel>
+                </Grid>
             </StatusBarItem>
         </StatusBar>
     </Grid>

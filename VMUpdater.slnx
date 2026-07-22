@@ -2,5 +2,6 @@
   <Folder Name="/Solution Items/">
     <File Path="VMUpdater.ico" />
   </Folder>
+  <Project Path="../VMUpdater.Tests/VMUpdater.Tests.csproj" Id="81869664-4abc-4cf1-8b36-dcd3205e0957" />
   <Project Path="VMUpdater.csproj" />
 </Solution>

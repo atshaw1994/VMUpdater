@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
@@ -10,17 +11,27 @@ namespace VMUpdater.Helpers
         {
             bool boolValue = value is bool b && b;
 
-            // If a parameter is passed (e.g., "Inverse"), flip the boolean
-            if (parameter != null)
+            // Explicitly check for "Inverse"
+            if (parameter is string param && param.Equals("Inverse", StringComparison.OrdinalIgnoreCase))
+            {
                 boolValue = !boolValue;
+                Trace.WriteLine($"BooleanToVisibilityConverter: Inverse parameter detected. Original value: {value}, Inverted value: {boolValue}");
+            }
 
+            Trace.WriteLine($"BooleanToVisibilityConverter: Converting value: {value}, Resulting Visibility: {(boolValue ? "Visible" : "Collapsed")}");
             return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool isVisible = value is Visibility v && v == Visibility.Visible;
-            return parameter != null ? !isVisible : isVisible;
+
+            if (parameter is string param && param.Equals("Inverse", StringComparison.OrdinalIgnoreCase))
+            {
+                isVisible = !isVisible;
+            }
+
+            return isVisible;
         }
     }
 }
