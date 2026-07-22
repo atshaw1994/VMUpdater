@@ -2,7 +2,9 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Threading;
+using VMUpdater.Helpers;
 using VMUpdater.ViewModels;
 using VMUpdater.Views;
 
@@ -53,7 +55,7 @@ namespace VMUpdater
 
             // Build Context Menu in code
             var contextMenu = new ContextMenu();
-
+            
             var menuOpen = new MenuItem { Header = "Open", Command = _viewModel.ShowMainWindowCommand };
             var menuOpenLog = new MenuItem { Header = "Open Log", Command = _viewModel.ShowLogCommand };
             var menuUpdateAll = new MenuItem { Header = "Update All", Command = _viewModel.UpdateAllCommand };

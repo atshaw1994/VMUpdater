@@ -36,7 +36,8 @@ namespace VMUpdater.ViewModels
 
             ShowMainWindowCommand =                 new RelayCommand(execute: ExecuteShowMainWindow); 
             ShowLogCommand =                        new RelayCommand(execute: ExecuteShowLog);
-            UpdateAllCommand =                      new RelayCommand(execute: async () => ExecuteUpdateAll());
+            UpdateAllCommand =                      new RelayCommand(execute: async () => ExecuteUpdateAll(), 
+                                                                     canExecute: () => !IsUpdating && VirtualMachines?.Any() == true);
             BrowseForVMWareExecutableCommand =      new RelayCommand(execute: BrowseForVMWareExecutable); 
             BrowseForVirtualBoxExecutableCommand =  new RelayCommand(execute: BrowseForVirtualBoxExecutable); 
             BrowseForQEMUExecutableCommand =        new RelayCommand(execute: BrowseForQEMUExecutable); 
@@ -63,6 +64,7 @@ namespace VMUpdater.ViewModels
                 {
                     OnPropertyChanged(nameof(TrayToolTipText));
                     OnTooltipRefreshRequested?.Invoke(TrayToolTipText);
+                    UpdateAllCommand.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -107,15 +109,15 @@ namespace VMUpdater.ViewModels
         #endregion
 
         #region Commands
-        public ICommand ShowMainWindowCommand { get; }
-        public ICommand ShowLogCommand { get; }
-        public ICommand AddVirtualMachineCommand { get; }
-        public ICommand UpdateAllCommand { get; }
-        public ICommand RemoveVirtualMachineCommand { get; }
-        public ICommand BrowseForVMWareExecutableCommand { get; }
-        public ICommand BrowseForVirtualBoxExecutableCommand { get; }
-        public ICommand BrowseForQEMUExecutableCommand { get; }
-        public ICommand ExitCommand { get; }
+        public RelayCommand ShowMainWindowCommand { get; }
+        public RelayCommand ShowLogCommand { get; }
+        public RelayCommand UpdateAllCommand { get; }
+        public RelayCommand<string> AddVirtualMachineCommand { get; }
+        public RelayCommand<VirtualMachineViewModel> RemoveVirtualMachineCommand { get; }
+        public RelayCommand BrowseForVMWareExecutableCommand { get; }
+        public RelayCommand BrowseForVirtualBoxExecutableCommand { get; }
+        public RelayCommand BrowseForQEMUExecutableCommand { get; }
+        public RelayCommand ExitCommand { get; }
         #endregion
 
         /// <summary>
@@ -177,6 +179,8 @@ namespace VMUpdater.ViewModels
             var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, CollapseSiblings) { IsExpanded = true };
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
+
+            UpdateAllCommand.RaiseCanExecuteChanged();
         }
 
         /// <summary>
@@ -190,6 +194,8 @@ namespace VMUpdater.ViewModels
                 VirtualMachines.Remove(itemToRemove);
                 _vmService.DeleteVirtualMachineEntry(itemToRemove.Model);
             }
+
+            UpdateAllCommand.RaiseCanExecuteChanged();
         }
 
         /// <summary>

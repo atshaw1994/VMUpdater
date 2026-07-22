@@ -18,7 +18,7 @@ namespace VMUpdater.Helpers
         /// <summary>
         /// Forces the CommandManager to re-evaluate the CanExecute state manually.
         /// </summary>
-        public static void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
+        public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
     }
 
     public class RelayCommand<T>(Action<T?> execute, Func<T?, bool>? canExecute = null) : ICommand
@@ -32,10 +32,9 @@ namespace VMUpdater.Helpers
             return _canExecute((T?)parameter);
         }
 
-        public void Execute(object? parameter)
-        {
-            _execute((T?)parameter);
-        }
+        public void Execute(object? parameter) => _execute((T?)parameter);
+
+        public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
 
         public event EventHandler? CanExecuteChanged
         {
