@@ -273,7 +273,7 @@ namespace VMUpdater.ViewModels
                     {
                         if (report.ProgressDelta > 0) UpdateProgress = report.ProgressDelta;
                         if (!string.IsNullOrEmpty(report.StatusText)) StatusMessage = report.StatusText;
-                        if (!string.IsNullOrEmpty(report.LogText)) LogMessage(report.LogText);
+                        if (!string.IsNullOrEmpty(report.LogText)) LogMessage($"[{vm.DisplayName}] {report.LogText}");
                     }),
                     RunProcessAsync
                 );
@@ -306,11 +306,12 @@ namespace VMUpdater.ViewModels
         private Task<int> RunProcessAsync(string fileName, string arguments)
         {
             var tcs = new TaskCompletionSource<int>();
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = fileName,
                 Arguments = arguments,
-                WorkingDirectory = Path.GetDirectoryName(fileName),
+                WorkingDirectory = string.IsNullOrWhiteSpace(fileName) ? null : Path.GetDirectoryName(fileName),
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden,
@@ -321,26 +322,51 @@ namespace VMUpdater.ViewModels
 
             var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
 
+            // Asynchronously log Standard Output as lines arrive
+            process.OutputDataReceived += (s, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(e.Data))
+                {
+                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        LogMessage($"[StdOut]: {e.Data.Trim()}");
+                    });
+                }
+            };
+
+            // Asynchronously log Standard Error as lines arrive
+            process.ErrorDataReceived += (s, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(e.Data))
+                {
+                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        LogMessage($"[StdErr]: {e.Data.Trim()}");
+                    });
+                }
+            };
+
             process.Exited += (s, e) =>
             {
-                string err = process.StandardError.ReadToEnd();
-                string outText = process.StandardOutput.ReadToEnd(); // Grab stdout as well
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    if (!string.IsNullOrWhiteSpace(outText))
-                        LogMessage($"[StdOut]: {outText.Trim()}");
-
-                    if (!string.IsNullOrWhiteSpace(err))
-                        LogMessage($"[StdErr]: {err.Trim()}");
-                });
-
-                tcs.SetResult(process.ExitCode);
+                // Set the task result and clean up process resources
+                tcs.TrySetResult(process.ExitCode);
                 process.Dispose();
             };
 
-            try { process.Start(); }
-            catch (Exception ex) { LogMessage($"Process failed start parameters initialization: {ex.Message}"); tcs.SetResult(-1); }
+            try
+            {
+                process.Start();
+
+                // CRITICAL: Begin asynchronous reading on both streams
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Process failed start parameters initialization: {ex.Message}");
+                tcs.TrySetResult(-1);
+                process.Dispose();
+            }
 
             return tcs.Task;
         }

@@ -99,7 +99,10 @@ namespace VMUpdater.Services
             return loadedVMs;
         }
 
-        public virtual async Task StartUpdateAsync(VirtualMachineModel vmData, Action<UpdateProgressReport> progressCallback, Func<string, string, Task<int>> runProcessExecutor)
+        public virtual async Task StartUpdateAsync(
+            VirtualMachineModel vmData,
+            Action<UpdateProgressReport> progressCallback,
+            Func<string, string, Task<int>> runProcessExecutor)
         {
             if (vmData == null) return;
 
@@ -113,11 +116,14 @@ namespace VMUpdater.Services
             }
             finally
             {
-                progressCallback(new UpdateProgressReport { LogText = $"[{Path.GetFileNameWithoutExtension(vmData.VMPath)}] Terminating hypervisor profile gracefully..." });
-
                 if (success)
                 {
-                    progressCallback(new UpdateProgressReport { ProgressDelta = 100 });
+                    progressCallback(new UpdateProgressReport
+                    {
+                        ProgressDelta = 100,
+                        StatusText = "Update completed successfully.",
+                        LogText = $"[{Path.GetFileNameWithoutExtension(vmData.VMPath)}] Task finished successfully."
+                    });
                     await Task.Delay(2000);
                 }
             }
@@ -194,21 +200,30 @@ namespace VMUpdater.Services
 
             int upgradeCode = await runProcessAsync(VmrunPath, updateArgs);
 
-            await StopVMAsync(Properties.Settings.Default.VMRunPath, $"-T ws stop \"{vm.VMPath}\" soft", runProcessAsync);
+            await StopVMAsync(VmrunPath, vm.VMPath, runProcessAsync);
             return upgradeCode == 0;
         }
-        private static async Task StopVMAsync(string vmrunPath, string vmIdentifier, Func<string, string, Task<int>> runProcessAsync)
+
+        private static async Task StopVMAsync(string vmrunPath, string vmPath, Func<string, string, Task<int>> runProcessAsync)
         {
-            // Soft check: Only send poweroff if the VM hasn't already shut down itself
-            await runProcessAsync(vmrunPath, $"controlvm \"{vmIdentifier}\" acpipoweroff");
+            await runProcessAsync(vmrunPath, $"-T ws stop \"{vmPath}\" soft");
         }
 
-        private static string GetOsUpdateScript(string osType, string password) => osType.ToLower() switch
+        private static string GetOsUpdateScript(string osType, string password)
         {
-            "arch" => $"echo '{password}' | sudo -S pacman -Syu --noconfirm",
-            "ubuntu" => $"echo '{password}' | sudo -S apt-get update && echo '{password}' | sudo -S apt-get dist-upgrade -y",
-            _ => "echo 'Unknown OS execution environment target'"
-        };
+            string safePassword = password.Replace("\\", "\\\\").Replace("'", "'\\''");
+
+            return osType.ToLower() switch
+            {
+                "arch" or "arch linux" =>
+                    $"echo '{password}' | sudo -S pacman -Syu --noconfirm",
+
+                "ubuntu" or "debian linux" or "debian" =>
+                    $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y && apt-get autoremove -y'",
+
+                _ => "echo 'Unknown OS execution environment target'"
+            };
+        }
     }
 
     public class VirtualBoxUpdater : IHypervisorUpdater
@@ -231,10 +246,12 @@ namespace VMUpdater.Services
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 50,
-                StatusText = "Stabilizing system components...",
-                LogText = $"[{vmIdentifier}] Allowing 45-second stabilization period for system kernel guest components..."
+                StatusText = "Waiting for Guest Additions...",
+                LogText = $"[{vmIdentifier}] Waiting for guest execution service to initialize..."
             });
-            await Task.Delay(45000);
+
+            bool isGuestReady = false;
+            string pingArgs = $"guestcontrol \"{vmIdentifier}\" run --username \"{vm.Username}\" --password \"{vm.Password}\" -- /bin/bash -c \"ping -c 3 8.8.8.8\"";
 
             // Step 3: Network Check
             reportProgress(new UpdateProgressReport
@@ -244,15 +261,25 @@ namespace VMUpdater.Services
                 LogText = $"[{vmIdentifier}] Checking outward-bound routing connection from guest adapter..."
             });
 
-            string pingArgs = $"guestcontrol \"{vmIdentifier}\" run --username \"{vm.Username}\" --password \"{vm.Password}\" -- /bin/bash -c \"ping -c 3 8.8.8.8\"";
-            int pingCode = await runProcessAsync(vboxManagePath, pingArgs);
+            // Attempt to reach the guest service up to 10 times (polling every 5 seconds = 50 seconds max)
+            for (int attempt = 1; attempt <= 10; attempt++)
+            {
+                await Task.Delay(5000);
+                int pingCode = await runProcessAsync(vboxManagePath, pingArgs);
 
-            if (pingCode != 0)
+                if (pingCode == 0)
+                {
+                    isGuestReady = true;
+                    break;
+                }
+            }
+
+            if (!isGuestReady)
             {
                 reportProgress(new UpdateProgressReport
                 {
-                    StatusText = "Aborted: Network connectivity validation failed.",
-                    LogText = $"[{vmIdentifier}] Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}"
+                    StatusText = "Aborted: Guest execution service did not start or network test failed.",
+                    LogText = $"[{vmIdentifier}] Abort: Guest control service unavailable or network ping rejected."
                 });
                 await StopVMAsync(vboxManagePath, vmIdentifier, runProcessAsync);
                 return false;
@@ -271,7 +298,7 @@ namespace VMUpdater.Services
 
             int upgradeCode = await runProcessAsync(vboxManagePath, updateArgs);
 
-            // Step 5: Teardown Execution
+            // Step 5: Graceful Teardown
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 90,
@@ -279,8 +306,7 @@ namespace VMUpdater.Services
                 LogText = $"[{vmIdentifier}] Terminating hypervisor profile gracefully..."
             });
 
-            // Allow 3 seconds for background guest shutdown to complete
-            await Task.Delay(3000);
+            // Issue ACPI shutdown from VirtualBox host side
             await StopVMAsync(vboxManagePath, vmIdentifier, runProcessAsync);
 
             return upgradeCode == 0;
@@ -288,19 +314,58 @@ namespace VMUpdater.Services
 
         private static async Task StopVMAsync(string vboxManagePath, string vmIdentifier, Func<string, string, Task<int>> runProcessAsync)
         {
-            // Soft check: Only send poweroff if the VM hasn't already shut down itself
-            await runProcessAsync(vboxManagePath, $"controlvm \"{vmIdentifier}\" acpipoweroff");
+            // Step 1: Send the ACPI Power Button command
+            await runProcessAsync(vboxManagePath, $"controlvm \"{vmIdentifier}\" acpipowerbutton");
+
+            // Step 2: Poll for up to 30 seconds until VirtualBox confirms the VM state is "powered off"
+            int timeoutSeconds = 30;
+            while (timeoutSeconds > 0)
+            {
+                await Task.Delay(2000);
+                timeoutSeconds -= 2;
+
+                // Use process execution to query VM state
+                var psi = new ProcessStartInfo
+                {
+                    FileName = vboxManagePath,
+                    Arguments = $"showvminfo \"{vmIdentifier}\" --machinereadable",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = await proc.StandardOutput.ReadToEndAsync();
+                    await proc.WaitForExitAsync();
+
+                    if (output.Contains("VMState=\"poweroff\""))
+                    {
+                        // VM has fully stopped
+                        return;
+                    }
+                }
+            }
+
+            // Force power off if ACPI shutdown timed out
+            Trace.WriteLine($"[VirtualBox] ACPI shutdown timed out for {vmIdentifier}. Forcing poweroff...");
+            await runProcessAsync(vboxManagePath, $"controlvm \"{vmIdentifier}\" poweroff");
         }
 
         private static string GetOsUpdateScript(string osType, string password)
         {
-            string safePassword = password.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            string safePassword = password.Replace("\\", "\\\\").Replace("'", "'\\''");
 
-            return osType.ToLower() switch
+            return osType.Trim().ToLower() switch
             {
-                "arch" => $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c 'pacman -Syu --noconfirm && (nohup shutdown -h now >/dev/null 2>&1 &)'",
-                "debian linux" => $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y && apt-get autoremove -y && (nohup shutdown -h now >/dev/null 2>&1 &)'",
-                _ => "echo 'Unknown OS execution environment target'"
+                "arch" or "arch linux" =>
+                    $"printf '%s\\n' '{safePassword}' | sudo -S -p '' pacman -Syu --noconfirm",
+
+                "ubuntu" or "debian linux" or "debian" =>
+                    $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y && apt-get autoremove -y'",
+
+                _ => "echo 'Unknown OS execution environment target' && exit 1"
             };
         }
     }
