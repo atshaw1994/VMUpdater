@@ -25,19 +25,19 @@
 
             <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
                 <Setter Property="Height" Value="8"/>
-                <Setter Property="Background" Value="#1A000000"/>
-                <Setter Property="Foreground" Value="#0078D4"/>
+                <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ProgressBar">
                             <Grid x:Name="TemplateRoot">
                                 <!-- 1. Track Background -->
-                                <Rectangle x:Name="PART_Track" Fill="{TemplateBinding Background}" RadiusX="4" RadiusY="4"/>
+                                <Rectangle x:Name="PART_Track" Fill="{TemplateBinding Background}" RadiusX="2" RadiusY="2"/>
 
                                 <!-- 2. Deterministic Fill (Managed by WPF via PART_Indicator) -->
                                 <Grid x:Name="PART_Indicator" HorizontalAlignment="Left" ClipToBounds="True">
-                                    <Rectangle x:Name="IndicatorFill" Fill="{TemplateBinding Foreground}" RadiusY="4" RadiusX="4"/>
+                                    <Rectangle x:Name="IndicatorFill" Fill="{TemplateBinding Foreground}" RadiusY="3" RadiusX="3"/>
 
                                     <!-- Sheen overlay clipped strictly to the filled progress area -->
                                     <Path x:Name="IndicatorSheen">
@@ -64,10 +64,10 @@
                                    Fill="{TemplateBinding Foreground}"
                                    RadiusX="4"
                                    RadiusY="4"
-                                   Width="60"
+                                   Width="30"
                                    HorizontalAlignment="Left">
                                         <Rectangle.RenderTransform>
-                                            <TranslateTransform x:Name="PillTransform" X="-60" />
+                                            <TranslateTransform x:Name="PillTransform" X="-30" />
                                         </Rectangle.RenderTransform>
                                     </Rectangle>
                                 </Grid>
@@ -85,7 +85,7 @@
                          Storyboard.TargetProperty="X"
                          From="-20"
                          To="200" 
-                         Duration="0:0:3">
+                         Duration="0:0:1.5">
                                                     <DoubleAnimation.EasingFunction>
                                                         <CubicEase EasingMode="EaseOut"/>
                                                     </DoubleAnimation.EasingFunction>
@@ -107,12 +107,9 @@
                                             <Storyboard RepeatBehavior="Forever">
                                                 <DoubleAnimation Storyboard.TargetName="PillTransform"
                                              Storyboard.TargetProperty="X"
-                                             From="-60"
-                                             To="600" 
+                                             From="-30"
+                                             To="300" 
                                              Duration="0:0:1.5">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseInOut"/>
-                                                    </DoubleAnimation.EasingFunction>
                                                 </DoubleAnimation>
                                             </Storyboard>
                                         </BeginStoryboard>
