@@ -41,8 +41,7 @@ namespace VMUpdater
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        if (_notifyIcon != null)
-                            _notifyIcon.ToolTipText = newTooltip;
+                        _notifyIcon?.ToolTipText = newTooltip;
                     }));
                 };
             }

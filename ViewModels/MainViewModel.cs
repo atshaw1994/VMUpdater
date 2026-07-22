@@ -270,7 +270,9 @@ namespace VMUpdater.ViewModels
                     vm.Model,
                     report => InvokeOnUIThread(() =>
                     {
-                        if (report.ProgressDelta > 0) UpdateProgress = report.ProgressDelta;
+                        if (report.ProgressDelta > 0) 
+                            if (!_updateQueue.IsEmpty) UpdateProgress = report.ProgressDelta / (_updateQueue.Count + 1);
+                            else UpdateProgress = report.ProgressDelta;
                         if (!string.IsNullOrEmpty(report.StatusText)) StatusMessage = report.StatusText;
                         if (!string.IsNullOrEmpty(report.LogText)) LogMessage($"[{vm.DisplayName}] {report.LogText}");
                     }),

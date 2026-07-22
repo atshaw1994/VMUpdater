@@ -192,7 +192,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 75,
                 StatusText = "Executing package transactions...",
-                LogText = "Sending package transaction orders via {vm.GuestOSType} engine..."
+                LogText = $"Sending package transaction orders via {vm.GuestOSType} engine..."
             });
 
             string updateCommand = GetOsUpdateScript(vm.GuestOSType, vm.Password);
