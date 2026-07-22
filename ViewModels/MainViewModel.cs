@@ -329,10 +329,10 @@ namespace VMUpdater.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (!string.IsNullOrWhiteSpace(outText))
-                        LogMessage($"[Console Output]: {outText.Trim()}");
+                        LogMessage($"[StdOut]: {outText.Trim()}");
 
                     if (!string.IsNullOrWhiteSpace(err))
-                        LogMessage($"[Process StandardError]: {err.Trim()}");
+                        LogMessage($"[StdErr]: {err.Trim()}");
                 });
 
                 tcs.SetResult(process.ExitCode);
