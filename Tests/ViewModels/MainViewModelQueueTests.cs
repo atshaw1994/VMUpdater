@@ -70,5 +70,71 @@ namespace VMUpdater.Tests.ViewModels
             Assert.Equal("VMUpdater\nUpdating...", mainVm.TrayToolTipText);
             Assert.Equal("VMUpdater\nUpdating...", reportedToolTip);
         }
+
+        [Fact]
+        public async Task EnqueueUpdateRequest_ProcessesItemsSequentiallyInQueue()
+        {
+            // Arrange: Pass the mock service into MainViewModel so it doesn't construct its own concrete service!
+            var mainVm = new MainViewModel(_vmServiceMock);
+            mainVm.VirtualMachines.Clear();
+
+            var vm1 = new VirtualMachineViewModel(new VirtualMachineModel { VMPath = @"C:\VMs\VM1.vmx" }, _vmServiceMock, _ => { });
+            var vm2 = new VirtualMachineViewModel(new VirtualMachineModel { VMPath = @"C:\VMs\VM2.vmx" }, _vmServiceMock, _ => { });
+
+            var vm1UpdateTask = new TaskCompletionSource<bool>();
+            var vm2UpdateTask = new TaskCompletionSource<bool>();
+
+            int vm1ExecutionCount = 0;
+            int vm2ExecutionCount = 0;
+
+            _vmServiceMock.StartUpdateAsync(
+                Arg.Any<VirtualMachineModel>(),
+                Arg.Any<Action<UpdateProgressReport>>(),
+                Arg.Any<Func<string, string, Task<int>>>()
+            ).Returns(async call =>
+            {
+                var model = call.Arg<VirtualMachineModel>();
+
+                if (model.VMPath == vm1.Model.VMPath)
+                {
+                    vm1ExecutionCount++;
+                    await vm1UpdateTask.Task;
+                }
+                else if (model.VMPath == vm2.Model.VMPath)
+                {
+                    vm2ExecutionCount++;
+                    await vm2UpdateTask.Task;
+                }
+            });
+
+            // Act & Assert Step 1: Enqueue VM1
+            mainVm.EnqueueUpdateRequest(vm1);
+            await Task.Delay(50);
+
+            Assert.True(mainVm.IsUpdating);
+            Assert.Equal(1, vm1ExecutionCount);
+            Assert.Equal(0, vm2ExecutionCount);
+
+            // Act & Assert Step 2: Enqueue VM2 while VM1 is active
+            mainVm.EnqueueUpdateRequest(vm2);
+            await Task.Delay(50);
+
+            Assert.True(mainVm.IsUpdating);
+            Assert.Equal(1, vm1ExecutionCount);
+            Assert.Equal(0, vm2ExecutionCount);
+
+            // Act & Assert Step 3: Complete VM1 and verify VM2 executes automatically
+            vm1UpdateTask.SetResult(true);
+            await Task.Delay(100);
+
+            Assert.Equal(1, vm1ExecutionCount);
+            Assert.Equal(1, vm2ExecutionCount);
+
+            // Cleanup VM2
+            vm2UpdateTask.SetResult(true);
+            await Task.Delay(50);
+
+            Assert.False(mainVm.IsUpdating);
+        }
     }
 }

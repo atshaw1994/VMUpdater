@@ -19,27 +19,32 @@ namespace VMUpdater.ViewModels
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
 
-        public MainViewModel()
+        // Constructor for production
+        public MainViewModel() : this(new VirtualMachineService()) { }
+
+        // Constructor for testing (Dependency Injection)
+        public MainViewModel(VirtualMachineService vmService)
         {
-            _vmService = new();
-            VirtualMachines = [];
-            string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-            if (!Directory.Exists(logFolder))
-                Directory.CreateDirectory(logFolder);
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
+            _vmService = vmService; 
+            VirtualMachines = []; 
 
-            ShowMainWindowCommand = new RelayCommand(execute: ExecuteShowMainWindow);
-            ShowLogCommand = new RelayCommand(execute: ExecuteShowLog);
-            AddVirtualMachineCommand = new RelayCommand<string>(AddVirtualMachine);
-            RemoveVirtualMachineCommand = new RelayCommand<VirtualMachineViewModel>(RemoveVirtualMachine);
-            BrowseForVMWareExecutableCommand = new RelayCommand(BrowseForVMWareExecutable);
-            BrowseForVirtualBoxExecutableCommand = new RelayCommand(BrowseForVirtualBoxExecutable);
-            BrowseForQEMUExecutableCommand = new RelayCommand(BrowseForQEMUExecutable);
-            ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
+            string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs"); 
+            if (!Directory.Exists(logFolder)) 
+                Directory.CreateDirectory(logFolder); 
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"); 
+            _logFilePath = Path.Combine(logFolder, $"{timestamp}.log"); 
 
-            InitializeApplicationProfiles();
-            LogMessage("Logging profile initialized.");
+            ShowMainWindowCommand = new RelayCommand(execute: ExecuteShowMainWindow); 
+            ShowLogCommand = new RelayCommand(execute: ExecuteShowLog); 
+            AddVirtualMachineCommand = new RelayCommand<string>(AddVirtualMachine); 
+            RemoveVirtualMachineCommand = new RelayCommand<VirtualMachineViewModel>(RemoveVirtualMachine); 
+            BrowseForVMWareExecutableCommand = new RelayCommand(BrowseForVMWareExecutable); 
+            BrowseForVirtualBoxExecutableCommand = new RelayCommand(BrowseForVirtualBoxExecutable); 
+            BrowseForQEMUExecutableCommand = new RelayCommand(BrowseForQEMUExecutable); 
+            ExitCommand = new RelayCommand(() => Application.Current.Shutdown()); 
+
+            InitializeApplicationProfiles(); 
+            LogMessage("Logging profile initialized."); 
         }
 
         #region Properties
@@ -214,11 +219,10 @@ namespace VMUpdater.ViewModels
             try
             {
                 // Invoke service layer passing functional callback hooks 
-                await _vmService!.StartUpdateAsync(
+                await _vmService.StartUpdateAsync(
                     vm.Model,
-                    report => Application.Current.Dispatcher.Invoke(() =>
+                    report => InvokeOnUIThread(() =>
                     {
-                        // This safely executes on the UI thread
                         if (report.ProgressDelta > 0) UpdateProgress = report.ProgressDelta;
                         if (!string.IsNullOrEmpty(report.StatusText)) StatusMessage = report.StatusText;
                         if (!string.IsNullOrEmpty(report.LogText)) LogMessage(report.LogText);
@@ -233,12 +237,15 @@ namespace VMUpdater.ViewModels
             }
             finally
             {
-                IsUpdating = false;
-                UpdateProgress = 0;
-                StatusMessage = "Ready.";
-                vm.LastUpdate = DateTime.Now;
-                _vmService!.SaveVirtualMachineEntry(vm.Model);
-                if (!forceUpdate) vm.CalculateNextScheduledUpdate();
+                IsUpdating = false; 
+                UpdateProgress = 0; 
+                StatusMessage = "Ready."; 
+                vm.LastUpdate = DateTime.Now; 
+                _vmService!.SaveVirtualMachineEntry(vm.Model); 
+                if (!forceUpdate) vm.CalculateNextScheduledUpdate(); 
+
+                // Drain the next queued VM automatically!
+                _ = ProcessNextInQueueAsync(); 
             }
         }
         private Task<int> RunProcessAsync(string fileName, string arguments)

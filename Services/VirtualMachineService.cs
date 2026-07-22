@@ -99,7 +99,7 @@ namespace VMUpdater.Services
             return loadedVMs;
         }
 
-        public async Task StartUpdateAsync(VirtualMachineModel vmData, Action<UpdateProgressReport> progressCallback, Func<string, string, Task<int>> runProcessExecutor)
+        public virtual async Task StartUpdateAsync(VirtualMachineModel vmData, Action<UpdateProgressReport> progressCallback, Func<string, string, Task<int>> runProcessExecutor)
         {
             if (vmData == null) return;
 
