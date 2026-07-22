@@ -22,6 +22,110 @@
                 <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
             </Style>
+
+            <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                <Setter Property="Height" Value="8"/>
+                <Setter Property="Background" Value="#1A000000"/>
+                <Setter Property="Foreground" Value="#0078D4"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid x:Name="TemplateRoot">
+                                <!-- 1. Track Background -->
+                                <Rectangle x:Name="PART_Track" Fill="{TemplateBinding Background}" RadiusX="4" RadiusY="4"/>
+
+                                <!-- 2. Deterministic Fill (Managed by WPF via PART_Indicator) -->
+                                <Grid x:Name="PART_Indicator" HorizontalAlignment="Left" ClipToBounds="True">
+                                    <Rectangle x:Name="IndicatorFill" Fill="{TemplateBinding Foreground}" RadiusY="4" RadiusX="4"/>
+
+                                    <!-- Sheen overlay clipped strictly to the filled progress area -->
+                                    <Path x:Name="IndicatorSheen">
+                                        <Path.Fill>
+                                            <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                <GradientStop Color="#00FFFFFF" Offset="0"/>
+                                                <GradientStop Color="#50FFFFFF" Offset="0.5"/>
+                                                <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Path.Fill>
+                                        <Path.Data>
+                                            M0,8 l8,-8 h50 l-8,8z
+                                        </Path.Data>
+                                        <Path.RenderTransform>
+                                            <TranslateTransform x:Name="SheenTransform" X="20" />
+                                        </Path.RenderTransform>
+                                    </Path>
+
+                                </Grid>
+
+                                <!-- 3. Indeterminate Track Layer (Full width, isolated from PART_Indicator) -->
+                                <Grid x:Name="IndeterminateRoot" ClipToBounds="True" Visibility="Collapsed">
+                                    <Rectangle x:Name="IndeterminatePill"
+                                   Fill="{TemplateBinding Foreground}"
+                                   RadiusX="4"
+                                   RadiusY="4"
+                                   Width="60"
+                                   HorizontalAlignment="Left">
+                                        <Rectangle.RenderTransform>
+                                            <TranslateTransform x:Name="PillTransform" X="-60" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Grid>
+                            </Grid>
+
+                            <ControlTemplate.Triggers>
+                                <!-- Deterministic Mode Trigger -->
+                                <Trigger Property="IsIndeterminate" Value="False">
+                                    <Setter TargetName="IndicatorSheen" Property="Visibility" Value="Visible"/>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard x:Name="SheenAnimation">
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <!-- Animates sheen across the indicator bounds -->
+                                                <DoubleAnimation Storyboard.TargetName="SheenTransform"
+                         Storyboard.TargetProperty="X"
+                         From="-20"
+                         To="200" 
+                         Duration="0:0:3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="SheenAnimation"/>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+
+                                <!-- Indeterminate Mode Trigger -->
+                                <Trigger Property="IsIndeterminate" Value="True">
+                                    <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed"/>
+                                    <Setter TargetName="IndeterminateRoot" Property="Visibility" Value="Visible"/>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard x:Name="IndeterminateAnimation">
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetName="PillTransform"
+                                             Storyboard.TargetProperty="X"
+                                             From="-60"
+                                             To="600" 
+                                             Duration="0:0:1.5">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseInOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="IndeterminateAnimation"/>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

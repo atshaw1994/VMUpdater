@@ -227,11 +227,10 @@ namespace VMUpdater.ViewModels
             }
 
             _updateQueue.Enqueue((vm, forceUpdate));
-            LogMessage($"[{vm.DisplayName}] Update request queued. Position in queue: {_updateQueue.Count}");
-
-            // Process next if idle
-            if (!IsUpdating) 
+            if (!IsUpdating)
                 _ = ProcessNextInQueueAsync();
+            else
+                LogMessage($"[{vm.DisplayName}] Update request queued. Position in queue: {_updateQueue.Count}");
         }
 
         /// <summary>
@@ -275,7 +274,7 @@ namespace VMUpdater.ViewModels
                         if (!string.IsNullOrEmpty(report.StatusText)) StatusMessage = report.StatusText;
                         if (!string.IsNullOrEmpty(report.LogText)) LogMessage($"[{vm.DisplayName}] {report.LogText}");
                     }),
-                    RunProcessAsync
+                    (vmIdentifier, fileName, arguments) => RunProcessAsync(vm.DisplayName, fileName, arguments)
                 );
             }
             catch (Exception ex)
@@ -303,7 +302,7 @@ namespace VMUpdater.ViewModels
         /// <param name="fileName"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        private Task<int> RunProcessAsync(string fileName, string arguments)
+        private Task<int> RunProcessAsync(string vmIdentifier, string fileName, string arguments)
         {
             var tcs = new TaskCompletionSource<int>();
 
@@ -329,7 +328,7 @@ namespace VMUpdater.ViewModels
                 {
                     Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        LogMessage($"[StdOut]: {e.Data.Trim()}");
+                        LogMessage($"[{vmIdentifier}] [StdOut]: {e.Data.Trim()}");
                     });
                 }
             };
@@ -341,7 +340,7 @@ namespace VMUpdater.ViewModels
                 {
                     Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        LogMessage($"[StdErr]: {e.Data.Trim()}");
+                        LogMessage($"[{vmIdentifier}] [StdErr]: {e.Data.Trim()}");
                     });
                 }
             };

@@ -209,9 +209,8 @@
                     <!-- Show Progress Bar when IsUpdating is true -->
                     <StackPanel Orientation="Horizontal" 
                                 VerticalAlignment="Center"
-                                d:Visibility="Collapsed" 
                                 Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Width="150" Height="14" d:Value="50"/>
+                        <ProgressBar Value="{Binding UpdateProgress}" Width="150"/>
                         <TextBlock x:Name="ProgressBarPercentTextBlock" 
                                    Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" 
                                    Margin="8,0,4,0" 

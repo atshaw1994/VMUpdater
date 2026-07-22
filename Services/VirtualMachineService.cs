@@ -102,7 +102,7 @@ namespace VMUpdater.Services
         public virtual async Task StartUpdateAsync(
             VirtualMachineModel vmData,
             Action<UpdateProgressReport> progressCallback,
-            Func<string, string, Task<int>> runProcessExecutor)
+            Func<string, string, string, Task<int>> runProcessExecutor)
         {
             if (vmData == null) return;
 
@@ -122,7 +122,7 @@ namespace VMUpdater.Services
                     {
                         ProgressDelta = 100,
                         StatusText = "Update completed successfully.",
-                        LogText = $"[{Path.GetFileNameWithoutExtension(vmData.VMPath)}] Task finished successfully."
+                        LogText = "Task finished successfully."
                     });
                     await Task.Delay(2000);
                 }
@@ -135,7 +135,7 @@ namespace VMUpdater.Services
         Task<bool> UpdateVMAsync(
             VirtualMachineModel vm,
             Action<UpdateProgressReport> reportProgress,
-            Func<string, string, Task<int>> runProcessAsync);
+            Func<string, string, string, Task<int>> runProcessAsync);
     }
 
     public class UpdateProgressReport
@@ -149,7 +149,7 @@ namespace VMUpdater.Services
     {
         private readonly string VmrunPath = Properties.Settings.Default.VMRunPath;
 
-        public async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, Task<int>> runProcessAsync)
+        public async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, string, Task<int>> runProcessAsync)
         {
             string vmIdentifier = Path.GetFileNameWithoutExtension(vm.VMPath);
 
@@ -158,16 +158,16 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 25,
                 StatusText = "Starting update process...",
-                LogText = $"[{vmIdentifier}] Initializing automated execution loop headlessly..."
+                LogText = "Initializing automated execution loop headlessly..."
             });
-            await runProcessAsync(VmrunPath, $"-T ws start \"{vm.VMPath}\" nogui");
+            await runProcessAsync(vmIdentifier, VmrunPath, $"-T ws start \"{vm.VMPath}\" nogui");
 
             // Step 2: Stabilization Wait
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 50,
                 StatusText = "Stabilizing system components...",
-                LogText = $"[{vmIdentifier}] Allowing 45-second stabilization period for system kernel guest components..."
+                LogText = "Allowing 45-second stabilization period for system kernel guest components..."
             });
             await Task.Delay(45000);
 
@@ -176,10 +176,10 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 60,
                 StatusText = "Performing network check...",
-                LogText = $"[{vmIdentifier}] Checking outward-bound routing connection from guest adapter..."
+                LogText = "Checking outward-bound routing connection from guest adapter..."
             });
             string pingArgs = $"-T ws -gu \"{vm.Username}\" -gp \"{vm.Password}\" runScriptInGuest \"{vm.VMPath}\" /bin/bash \"ping -c 3 8.8.8.8\"";
-            int pingCode = await runProcessAsync(VmrunPath, pingArgs);
+            int pingCode = await runProcessAsync(vmIdentifier, VmrunPath, pingArgs);
 
             if (pingCode != 0)
             {
@@ -192,21 +192,21 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 75,
                 StatusText = "Executing package transactions...",
-                LogText = $"[{vmIdentifier}] Sending package transaction orders via {vm.GuestOSType} engine..."
+                LogText = "Sending package transaction orders via {vm.GuestOSType} engine..."
             });
 
             string updateCommand = GetOsUpdateScript(vm.GuestOSType, vm.Password);
             string updateArgs = $"-T ws -gu \"{vm.Username}\" -gp \"{vm.Password}\" runScriptInGuest \"{vm.VMPath}\" /bin/bash \"{updateCommand}\"";
 
-            int upgradeCode = await runProcessAsync(VmrunPath, updateArgs);
+            int upgradeCode = await runProcessAsync(vmIdentifier, VmrunPath, updateArgs);
 
             await StopVMAsync(VmrunPath, vm.VMPath, runProcessAsync);
             return upgradeCode == 0;
         }
 
-        private static async Task StopVMAsync(string vmrunPath, string vmPath, Func<string, string, Task<int>> runProcessAsync)
+        private static async Task StopVMAsync(string vmrunPath, string vmPath, Func<string, string, string, Task<int>> runProcessAsync)
         {
-            await runProcessAsync(vmrunPath, $"-T ws stop \"{vmPath}\" soft");
+            await runProcessAsync(Path.GetFileNameWithoutExtension(vmPath), vmrunPath, $"-T ws stop \"{vmPath}\" soft");
         }
 
         private static string GetOsUpdateScript(string osType, string password)
@@ -228,7 +228,7 @@ namespace VMUpdater.Services
 
     public class VirtualBoxUpdater : IHypervisorUpdater
     {
-        public async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, Task<int>> runProcessAsync)
+        public async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, string, Task<int>> runProcessAsync)
         {
             string vboxManagePath = Properties.Settings.Default.VBoxManagePath;
             string vmIdentifier = Path.GetFileNameWithoutExtension(vm.VMPath);
@@ -238,16 +238,16 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 25,
                 StatusText = "Starting update process...",
-                LogText = $"[{vmIdentifier}] Initializing automated execution loop headlessly via VirtualBox..."
+                LogText = "Initializing automated execution loop headlessly via VirtualBox..."
             });
-            await runProcessAsync(vboxManagePath, $"startvm \"{vmIdentifier}\" --type headless");
+            await runProcessAsync(vmIdentifier, vboxManagePath, $"startvm \"{vmIdentifier}\" --type headless");
 
             // Step 2: Stabilization Wait
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 50,
                 StatusText = "Waiting for Guest Additions...",
-                LogText = $"[{vmIdentifier}] Waiting for guest execution service to initialize..."
+                LogText = $"Waiting for guest execution service to initialize..."
             });
 
             bool isGuestReady = false;
@@ -258,14 +258,14 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 60,
                 StatusText = "Performing network check...",
-                LogText = $"[{vmIdentifier}] Checking outward-bound routing connection from guest adapter..."
+                LogText = "Checking outward-bound routing connection from guest adapter..."
             });
 
             // Attempt to reach the guest service up to 10 times (polling every 5 seconds = 50 seconds max)
             for (int attempt = 1; attempt <= 10; attempt++)
             {
                 await Task.Delay(5000);
-                int pingCode = await runProcessAsync(vboxManagePath, pingArgs);
+                int pingCode = await runProcessAsync(vmIdentifier, vboxManagePath, pingArgs);
 
                 if (pingCode == 0)
                 {
@@ -279,7 +279,7 @@ namespace VMUpdater.Services
                 reportProgress(new UpdateProgressReport
                 {
                     StatusText = "Aborted: Guest execution service did not start or network test failed.",
-                    LogText = $"[{vmIdentifier}] Abort: Guest control service unavailable or network ping rejected."
+                    LogText = "Abort: Guest control service unavailable or network ping rejected."
                 });
                 await StopVMAsync(vboxManagePath, vmIdentifier, runProcessAsync);
                 return false;
@@ -290,20 +290,20 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 75,
                 StatusText = "Executing package transactions...",
-                LogText = $"[{vmIdentifier}] Sending package transaction orders via {vm.GuestOSType} engine..."
+                LogText = $"Sending package transaction orders via {vm.GuestOSType} engine..."
             });
 
             string scriptCommand = GetOsUpdateScript(vm.GuestOSType, vm.Password);
             string updateArgs = $"guestcontrol \"{vmIdentifier}\" run --username \"{vm.Username}\" --password \"{vm.Password}\" -- /bin/sh -c \"{scriptCommand}\"";
 
-            int upgradeCode = await runProcessAsync(vboxManagePath, updateArgs);
+            int upgradeCode = await runProcessAsync(vmIdentifier, vboxManagePath, updateArgs);
 
             // Step 5: Graceful Teardown
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 90,
                 StatusText = "Shutting down VM...",
-                LogText = $"[{vmIdentifier}] Terminating hypervisor profile gracefully..."
+                LogText = "Terminating hypervisor profile gracefully..."
             });
 
             // Issue ACPI shutdown from VirtualBox host side
@@ -312,10 +312,10 @@ namespace VMUpdater.Services
             return upgradeCode == 0;
         }
 
-        private static async Task StopVMAsync(string vboxManagePath, string vmIdentifier, Func<string, string, Task<int>> runProcessAsync)
+        private static async Task StopVMAsync(string vboxManagePath, string vmIdentifier, Func<string, string, string, Task<int>> runProcessAsync)
         {
             // Step 1: Send the ACPI Power Button command
-            await runProcessAsync(vboxManagePath, $"controlvm \"{vmIdentifier}\" acpipowerbutton");
+            await runProcessAsync(vmIdentifier, vboxManagePath, $"controlvm \"{vmIdentifier}\" acpipowerbutton");
 
             // Step 2: Poll for up to 30 seconds until VirtualBox confirms the VM state is "powered off"
             int timeoutSeconds = 30;
@@ -350,7 +350,7 @@ namespace VMUpdater.Services
 
             // Force power off if ACPI shutdown timed out
             Trace.WriteLine($"[VirtualBox] ACPI shutdown timed out for {vmIdentifier}. Forcing poweroff...");
-            await runProcessAsync(vboxManagePath, $"controlvm \"{vmIdentifier}\" poweroff");
+            await runProcessAsync(vmIdentifier, vboxManagePath, $"controlvm \"{vmIdentifier}\" poweroff");
         }
 
         private static string GetOsUpdateScript(string osType, string password)
@@ -375,7 +375,7 @@ namespace VMUpdater.Services
         public async Task<bool> UpdateVMAsync(
             VirtualMachineModel vm,
             Action<UpdateProgressReport> reportProgress,
-            Func<string, string, Task<int>> runProcessAsync)
+            Func<string, string, string, Task<int>> runProcessAsync)
         {
             Trace.WriteLine($"[QEMU] Booting QEMU headless target: {vm.VMPath}");
 
