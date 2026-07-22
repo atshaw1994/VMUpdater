@@ -209,7 +209,9 @@ namespace VMUpdater.ViewModels
         {
             LogMessage("User initiated update for all VMs.");
             foreach (var vm in VirtualMachines)
+            {
                 EnqueueUpdateRequest(vm, forceUpdate: true);
+            }
         }
 
         /// <summary>
@@ -242,6 +244,7 @@ namespace VMUpdater.ViewModels
 
             if (_updateQueue.TryDequeue(out var request))
             {
+                LogMessage($"Updating VM '{request.VM.DisplayName}'...");
                 await ExecuteStartUpdate(request.VM, request.ForceUpdate);
             }
         }
@@ -255,7 +258,7 @@ namespace VMUpdater.ViewModels
         public async Task ExecuteStartUpdate(VirtualMachineViewModel vm, bool forceUpdate = false)
         {
             if (IsUpdating) return;
-            if (forceUpdate) LogMessage("User started manual update.");
+            if (forceUpdate) LogMessage($"[{vm.DisplayName}] User started manual update.");
 
             IsUpdating = true;
             UpdateProgress = 10;
@@ -277,7 +280,7 @@ namespace VMUpdater.ViewModels
             }
             catch (Exception ex)
             {
-                LogMessage($"Fatal Processing Exception: {ex.Message}");
+                LogMessage($"[{vm.DisplayName}] Fatal Processing Exception: {ex.Message}");
                 StatusMessage = "Update process encountered a fatal error.";
             }
             finally

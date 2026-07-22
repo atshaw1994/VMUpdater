@@ -113,7 +113,7 @@ namespace VMUpdater.Services
             }
             finally
             {
-                progressCallback(new UpdateProgressReport { LogText = "Terminating hypervisor profile gracefully..." });
+                progressCallback(new UpdateProgressReport { LogText = $"[{Path.GetFileNameWithoutExtension(vmData.VMPath)}] Terminating hypervisor profile gracefully..." });
 
                 if (success)
                 {
@@ -145,12 +145,14 @@ namespace VMUpdater.Services
 
         public async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, Task<int>> runProcessAsync)
         {
+            string vmIdentifier = Path.GetFileNameWithoutExtension(vm.VMPath);
+
             // Step 1: Headless Invocation
             reportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 25,
                 StatusText = "Starting update process...",
-                LogText = "Initializing automated execution loop headlessly..."
+                LogText = $"[{vmIdentifier}] Initializing automated execution loop headlessly..."
             });
             await runProcessAsync(VmrunPath, $"-T ws start \"{vm.VMPath}\" nogui");
 
@@ -159,7 +161,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 50,
                 StatusText = "Stabilizing system components...",
-                LogText = "Allowing 45-second stabilization period for system kernel guest components..."
+                LogText = $"[{vmIdentifier}] Allowing 45-second stabilization period for system kernel guest components..."
             });
             await Task.Delay(45000);
 
@@ -168,14 +170,14 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 60,
                 StatusText = "Performing network check...",
-                LogText = "Checking outward-bound routing connection from guest adapter..."
+                LogText = $"[{vmIdentifier}] Checking outward-bound routing connection from guest adapter..."
             });
             string pingArgs = $"-T ws -gu \"{vm.Username}\" -gp \"{vm.Password}\" runScriptInGuest \"{vm.VMPath}\" /bin/bash \"ping -c 3 8.8.8.8\"";
             int pingCode = await runProcessAsync(VmrunPath, pingArgs);
 
             if (pingCode != 0)
             {
-                reportProgress(new UpdateProgressReport { StatusText = "Aborted: Network connectivity validation failed.", LogText = $"Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}" });
+                reportProgress(new UpdateProgressReport { StatusText = "Aborted: Network connectivity validation failed.", LogText = $"[{vmIdentifier}] Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}" });
                 return false;
             }
 
@@ -184,7 +186,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 75,
                 StatusText = "Executing package transactions...",
-                LogText = $"Sending package transaction orders via {vm.GuestOSType} engine..."
+                LogText = $"[{vmIdentifier}] Sending package transaction orders via {vm.GuestOSType} engine..."
             });
 
             string updateCommand = GetOsUpdateScript(vm.GuestOSType, vm.Password);
@@ -221,7 +223,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 25,
                 StatusText = "Starting update process...",
-                LogText = "Initializing automated execution loop headlessly via VirtualBox..."
+                LogText = $"[{vmIdentifier}] Initializing automated execution loop headlessly via VirtualBox..."
             });
             await runProcessAsync(vboxManagePath, $"startvm \"{vmIdentifier}\" --type headless");
 
@@ -230,7 +232,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 50,
                 StatusText = "Stabilizing system components...",
-                LogText = "Allowing 45-second stabilization period for system kernel guest components..."
+                LogText = $"[{vmIdentifier}] Allowing 45-second stabilization period for system kernel guest components..."
             });
             await Task.Delay(45000);
 
@@ -239,7 +241,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 60,
                 StatusText = "Performing network check...",
-                LogText = "Checking outward-bound routing connection from guest adapter..."
+                LogText = $"[{vmIdentifier}] Checking outward-bound routing connection from guest adapter..."
             });
 
             string pingArgs = $"guestcontrol \"{vmIdentifier}\" run --username \"{vm.Username}\" --password \"{vm.Password}\" -- /bin/bash -c \"ping -c 3 8.8.8.8\"";
@@ -250,7 +252,7 @@ namespace VMUpdater.Services
                 reportProgress(new UpdateProgressReport
                 {
                     StatusText = "Aborted: Network connectivity validation failed.",
-                    LogText = $"Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}"
+                    LogText = $"[{vmIdentifier}] Abort: Intermittent network ping test rejected execution with exit frame code: {pingCode}"
                 });
                 await StopVMAsync(vboxManagePath, vmIdentifier, runProcessAsync);
                 return false;
@@ -261,7 +263,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 75,
                 StatusText = "Executing package transactions...",
-                LogText = $"Sending package transaction orders via {vm.GuestOSType} engine..."
+                LogText = $"[{vmIdentifier}] Sending package transaction orders via {vm.GuestOSType} engine..."
             });
 
             string scriptCommand = GetOsUpdateScript(vm.GuestOSType, vm.Password);
@@ -274,7 +276,7 @@ namespace VMUpdater.Services
             {
                 ProgressDelta = 90,
                 StatusText = "Shutting down VM...",
-                LogText = "Terminating hypervisor profile gracefully..."
+                LogText = $"[{vmIdentifier}] Terminating hypervisor profile gracefully..."
             });
 
             // Allow 3 seconds for background guest shutdown to complete
