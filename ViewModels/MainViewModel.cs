@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -14,6 +15,7 @@ namespace VMUpdater.ViewModels
     {
         private readonly string _logFilePath;
         private readonly VirtualMachineService _vmService;
+        private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
 
@@ -119,7 +121,6 @@ namespace VMUpdater.ViewModels
                 mainWindow.Activate();
             }
         }
-
         private void ExecuteShowLog()
         {
             var window = Application.Current.MainWindow;
@@ -156,9 +157,7 @@ namespace VMUpdater.ViewModels
             }
 
             var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, CollapseSiblings) { IsExpanded = true };
-
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
-
             VirtualMachines.Add(newItemViewModel);
         }
         private void RemoveVirtualMachine(VirtualMachineViewModel? itemToRemove)
@@ -173,6 +172,35 @@ namespace VMUpdater.ViewModels
         {
             foreach (var vm in VirtualMachines.Where(vm => vm != expandedItem))
                 vm.IsExpanded = false;
+        }
+
+        /// <summary>
+        /// Entry point for VMs or Timers requesting an update.
+        /// </summary>
+        public void EnqueueUpdateRequest(VirtualMachineViewModel vm, bool forceUpdate = false)
+        {
+            // Avoid duplicate queue entries for the same VM if it's already queued
+            if (_updateQueue.Any(item => item.VM == vm))
+            {
+                LogMessage($"[{vm.DisplayName}] Update request ignored: VM is already queued.");
+                return;
+            }
+
+            _updateQueue.Enqueue((vm, forceUpdate));
+            LogMessage($"[{vm.DisplayName}] Update request queued. Position in queue: {_updateQueue.Count}");
+
+            // Process next if idle
+            if (!IsUpdating) 
+                _ = ProcessNextInQueueAsync();
+        }
+        private async Task ProcessNextInQueueAsync()
+        {
+            if (IsUpdating) return;
+
+            if (_updateQueue.TryDequeue(out var request))
+            {
+                await ExecuteStartUpdate(request.VM, request.ForceUpdate);
+            }
         }
         public async Task ExecuteStartUpdate(VirtualMachineViewModel vm, bool forceUpdate = false)
         {

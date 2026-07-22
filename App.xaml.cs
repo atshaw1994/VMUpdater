@@ -103,8 +103,8 @@ namespace VMUpdater
                     now.Hour == vm.Model.NextUpdate.Hour &&
                     now.Minute == vm.Model.NextUpdate.Minute)
                 {
-                    _viewModel.LogMessage("Automated Cron Schedule parameters validated successfully. Commencing cycle...");
-                    await _viewModel.ExecuteStartUpdate(vm);
+                    _viewModel.LogMessage($"Automated Cron Schedule validated for [{vm.DisplayName}]. Requesting update...");
+                    _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
                 }
             }
         }
