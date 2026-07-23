@@ -1,12 +1,13 @@
-﻿using System.IO;
-using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.IO;
 using VMUpdater.Helpers;
 using VMUpdater.Models;
 using VMUpdater.Services;
 
 namespace VMUpdater.ViewModels
 {
-    public class VirtualMachineViewModel : ViewModelBase
+    public partial class VirtualMachineViewModel : ObservableObject
     {
         private readonly Action<VirtualMachineViewModel> _onExpanded;
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
@@ -26,159 +27,17 @@ namespace VMUpdater.ViewModels
             _password = Model.Password;
             _scheduleDay = Model.ScheduleDay;
             _scheduleTime = Model.ScheduleTime;
-
-            ToggleExpandCommand = new RelayCommand(ToggleExpand);
-            UpdateNowCommand = new RelayCommand(() => RequestStartUpdate?.Invoke(this, true));
-            BrowseCommand = new RelayCommand(BrowseForVirtualMachineFile);
         }
 
         #region Commands
-        public ICommand ToggleExpandCommand { get; }
-        public ICommand UpdateNowCommand { get; }
-        public ICommand BrowseCommand { get; }
-        #endregion
 
-        #region Private Properties
-        private HypervisorType _hypervisorType;
-        private string _guestOSType;
-        private string _displayName;
-        private string _username;
-        private string _password;
-        private string _scheduleDay;
-        private DateTime _scheduleTime;
-        private bool _isExpanded;
-        private string _expandedIcon = "\uE70D";
-        #endregion
-
-        #region Public Properties
-        public HypervisorType HypervisorType
-        {
-            get => _hypervisorType;
-            set
-            {
-                if (SetProperty(ref _hypervisorType, value, nameof(HypervisorType)))
-                    Model.Hypervisor = value;
-            }
-        }
-        public string GuestOSType
-        {
-            get => _guestOSType;
-            set
-            {
-                if (SetProperty(ref _guestOSType, value, nameof(GuestOSType)))
-                {
-                    Model.GuestOSType = value;
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public string VMPath
-        {
-            get => Model.VMPath;
-            set
-            {
-                if (SetProperty(() => Model.VMPath, v => Model.VMPath = v, value))
-                {
-                    DisplayName =!string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public string DisplayName { get => _displayName; set => SetProperty(ref _displayName, value, nameof(DisplayName)); }
-        public string Username
-        {
-            get => _username;
-            set
-            {
-                if (SetProperty(ref _username, value, nameof(Username)))
-                {
-                    Model.Username = value;
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                if (SetProperty(ref _password, value, nameof(Password)))
-                {
-                    Model.Password = value;
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public string ScheduleDay
-        {
-            get => _scheduleDay;
-            set
-            {
-                if (SetProperty(ref _scheduleDay, value, nameof(ScheduleDay)))
-                {
-                    Model.ScheduleDay = value;
-                    CalculateNextScheduledUpdate();
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public DateTime ScheduleTime
-        {
-            get => _scheduleTime;
-            set
-            {
-                if (SetProperty(ref _scheduleTime, value, nameof(ScheduleTime)))
-                {
-                    Model.ScheduleTime = value;
-                    CalculateNextScheduledUpdate();
-                    _vmService!.SaveVirtualMachineEntry(Model);
-                }
-            }
-        }
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                if (SetProperty(ref _isExpanded, value, nameof(IsExpanded)))
-                {
-                    ExpandedIcon = _isExpanded ? "\uE70E" : "\uE70D";
-                    if (IsExpanded) _onExpanded?.Invoke(this);
-                }
-            }
-        }
-        public string ExpandedIcon { get => _expandedIcon; private set => SetProperty(ref _expandedIcon, value, nameof(ExpandedIcon)); }
-        public DateTime LastUpdate
-        {
-            get => Model.LastUpdate;
-            set
-            {
-                if (SetProperty(() => Model.LastUpdate, v => Model.LastUpdate = v, value))
-                {
-                    OnPropertyChanged(nameof(LastUpdateDisplayText));
-                }
-            }
-        }
-        public string LastUpdateDisplayText
-        {
-            get
-            {
-                if (Model.LastUpdate == DateTime.MinValue) return "Last Update: Never";
-                return "Last Update: " + Model.LastUpdate.ToString("dddd, MMMM d 'at' hh:mm tt");
-            }
-        }
-        public string NextUpdateDisplayText
-        {
-            get
-            {
-                if (Model.NextUpdate == DateTime.MinValue) return "Next Update: Never";
-                return "Next Update: " + Model.NextUpdate.ToString("dddd, MMMM d 'at' hh:mm tt");
-            }
-        }
-        #endregion
-
+        [RelayCommand]
         private void ToggleExpand() => IsExpanded = !IsExpanded;
 
+        [RelayCommand]
+        private void UpdateNow() => RequestStartUpdate?.Invoke(this, true);
+
+        [RelayCommand]
         public void BrowseForVirtualMachineFile()
         {
             Microsoft.Win32.OpenFileDialog dialog = new();
@@ -200,6 +59,124 @@ namespace VMUpdater.ViewModels
 
             if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
         }
+        #endregion
+
+        #region Properties
+
+        [ObservableProperty]
+        private HypervisorType _hypervisorType;
+
+        partial void OnHypervisorTypeChanged(HypervisorType value)
+        {
+            Model.Hypervisor = value;
+        }
+
+        [ObservableProperty]
+        private string _guestOSType = string.Empty;
+
+        partial void OnGuestOSTypeChanged(string value)
+        {
+            Model.GuestOSType = value;
+            _vmService?.SaveVirtualMachineEntry(Model);
+        }
+
+        public string VMPath
+        {
+            get => Model.VMPath;
+            set
+            {
+                if (SetProperty(
+                    Model.VMPath,
+                    value,
+                    Model,
+                    (model, val) => model.VMPath = val))
+                {
+                    DisplayName = !string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
+                    _vmService?.SaveVirtualMachineEntry(Model);
+                }
+            }
+        }
+
+        [ObservableProperty]
+        private string _displayName = string.Empty;
+
+        [ObservableProperty]
+        private string _username = string.Empty;
+
+        partial void OnUsernameChanged(string value)
+        {
+            Model.Username = value;
+            _vmService?.SaveVirtualMachineEntry(Model);
+        }
+
+        [ObservableProperty]
+        private string _password = string.Empty;
+
+        partial void OnPasswordChanged(string value)
+        {
+            Model.Password = value;
+            _vmService?.SaveVirtualMachineEntry(Model);
+        }
+
+        [ObservableProperty]
+        private string _scheduleDay = string.Empty;
+
+        partial void OnScheduleDayChanged(string value)
+        {
+            Model.ScheduleDay = value;
+            CalculateNextScheduledUpdate();
+            _vmService?.SaveVirtualMachineEntry(Model);
+        }
+
+        [ObservableProperty]
+        private DateTime _scheduleTime;
+
+        partial void OnScheduleTimeChanged(DateTime value)
+        {
+            Model.ScheduleTime = value;
+            CalculateNextScheduledUpdate();
+            _vmService?.SaveVirtualMachineEntry(Model);
+        }
+
+        [ObservableProperty]
+        private bool _isExpanded;
+
+        partial void OnIsExpandedChanged(bool value)
+        {
+            ExpandedIcon = value ? "\uE70E" : "\uE70D";
+            if (value) _onExpanded?.Invoke(this);
+        }
+
+        [ObservableProperty]
+        private string _expandedIcon = "\uE70D";
+
+        public DateTime LastUpdate
+        {
+            get => Model.LastUpdate;
+            set
+            {
+                if (SetProperty(
+                    Model.LastUpdate,
+                    value,
+                    Model,
+                    (model, val) => model.LastUpdate = val))
+                {
+                    OnPropertyChanged(nameof(LastUpdateDisplayText));
+                }
+            }
+        }
+
+        public string LastUpdateDisplayText =>
+            Model.LastUpdate == DateTime.MinValue
+                ? "Last Update: Never"
+                : $"Last Update: {Model.LastUpdate:dddd, MMMM d 'at' hh:mm tt}";
+
+        public string NextUpdateDisplayText =>
+            Model.NextUpdate == DateTime.MinValue
+                ? "Next Update: Never"
+                : $"Next Update: {Model.NextUpdate:dddd, MMMM d 'at' hh:mm tt}";
+
+        #endregion
 
         public void CalculateNextScheduledUpdate()
         {
