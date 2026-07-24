@@ -14,11 +14,12 @@ VMUpdater manages a list of VMs, each with its own hypervisor type, guest OS, cr
 - **Multi-Hypervisor Support** — Works with VMware Workstation (`vmrun`), VirtualBox (`VBoxManage`), and QEMU.
 - **Multi-OS Support** — Runs the correct upgrade command per guest OS (Arch Linux `pacman`, Ubuntu `apt-get`).
 - **Scheduled Updates** — Per-VM weekly schedule (day + time), calculated and displayed as *Next Update*.
+- **Sequential Update Queue** — Multiple update requests are processed one at a time; duplicate queuing is prevented.
 - **Manual Trigger** — Force an immediate update for any VM at any time via *Update Now*.
 - **Headless Execution** — VMs boot without a GUI and are shut down automatically after the update completes.
 - **Network Validation** — Pings `8.8.8.8` from inside the guest before running updates; aborts cleanly on failure.
 - **Progress Tracking** — A status bar and progress indicator keep you informed throughout each update.
-- **Persistent VM Profiles** — Each VM's configuration is saved as an individual profile in `%AppData%\VMUpdater\`.
+- **Persistent VM Profiles** — Each VM's configuration is saved as a JSON profile in `%AppData%\VMUpdater\`.
 - **System Tray Integration** — Minimizes to the system tray and shows live update status in the tooltip.
 - **Activity Log** — In-app log tab plus timestamped log files in `Logs\` provide a full audit trail.
 
@@ -55,31 +56,66 @@ VMUpdater manages a list of VMs, each with its own hypervisor type, guest OS, cr
 ```
 VMUpdater/
 ├── Models/
-│   └── VirtualMachineModel.cs      # Per-VM data model & HypervisorType enum
+│   └── VirtualMachineModel.cs              # Per-VM data model & HypervisorType enum
 ├── Services/
-│   └── VirtualMachineService.cs    # Update orchestration, hypervisor strategies, profile persistence
+│   ├── Abstractions/
+│   │   ├── IHypervisorUpdater.cs           # Strategy interface for hypervisor implementations
+│   │   ├── ISettingsProvider.cs            # Settings abstraction for testability
+│   │   ├── IVirtualMachineRepository.cs    # Persistence abstraction
+│   │   └── IVirtualMachineService.cs       # Update orchestration abstraction
+│   ├── Hypervisors/
+│   │   ├── HypervisorUpdaterBase.cs        # Shared update pipeline logic
+│   │   ├── VMWareUpdater.cs
+│   │   ├── VirtualBoxUpdater.cs
+│   │   └── QemuUpdater.cs
+│   ├── AppSettingsProvider.cs              # Reads hypervisor paths from user settings
+│   ├── JsonVirtualMachineRepository.cs     # JSON-backed VM profile persistence
+│   └── VirtualMachineService.cs            # Orchestrates updates via hypervisor strategy
 ├── ViewModels/
-│   ├── MainViewModel.cs            # App-level logic, VM list, commands
-│   ├── VirtualMachineViewModel.cs  # Per-VM state, scheduling, browse
-│   └── ViewModelBase.cs            # INotifyPropertyChanged base
+│   ├── MainViewModel.cs                    # App-level logic, VM list, update queue
+│   └── VirtualMachineViewModel.cs          # Per-VM state, scheduling, browse
 ├── Views/
-│   ├── MainWindow.xaml             # Main UI shell
-│   ├── VirtualMachineEntry.xaml    # Expandable per-VM card
-│   └── TimePicker.xaml             # Custom time picker control
+│   ├── MainWindow.xaml                     # Main UI shell
+│   ├── VirtualMachineEntry.xaml            # Expandable per-VM card
+│   └── TimePicker.xaml                     # Custom time picker control
 ├── Helpers/
-│   ├── RelayCommand.cs
 │   ├── BooleanToVisibilityConverter.cs
 │   ├── InverseBooleanConverter.cs
 │   └── DateTimeToPartsConverter.cs
 └── Properties/
-    └── Settings.settings           # Hypervisor executable paths
+    └── Settings.settings                   # Hypervisor executable paths
+
+VMUpdater.Tests/
+├── Services/
+│   └── VirtualMachineServiceTests.cs       # Update pipeline & abort behaviour
+└── ViewModels/
+    ├── MainViewModelQueueTests.cs          # Update queue, DI, tray tooltip
+    └── VirtualMachineViewModelTests.cs     # Scheduling, display text, commands
 ```
 
 ## Tech Stack
 
-- **.NET 10** / **WPF**
-- **MVVM** architecture with a service/strategy layer
-- [H.NotifyIcon.Wpf](https://github.com/HavenDV/H.NotifyIcon) — system tray support
+| | |
+|---|---|
+| Runtime | .NET 10 / WPF |
+| Architecture | MVVM + Service/Strategy + Repository |
+| Dependency Injection | [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection) |
+| MVVM Toolkit | [CommunityToolkit.Mvvm](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/) |
+| System Tray | [H.NotifyIcon.Wpf](https://github.com/HavenDV/H.NotifyIcon) |
+| Testing | [xUnit v3](https://xunit.net/) + [NSubstitute](https://nsubstitute.github.io/) |
+| Coverage | [coverlet](https://github.com/coverlet-coverage/coverlet) |
+
+## Running Tests
+
+```bash
+dotnet test VMUpdater.Tests/VMUpdater.Tests.csproj
+```
+
+To collect code coverage:
+
+```bash
+dotnet test VMUpdater.Tests/VMUpdater.Tests.csproj --collect:"XPlat Code Coverage"
+```
 
 ## License
 
