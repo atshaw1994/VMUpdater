@@ -23,6 +23,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        
         <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
             <TabControl.Resources>
                 <Style TargetType="ContentPresenter">
@@ -49,8 +50,8 @@
                     </Style.Triggers>
                 </Style>
             </TabControl.Resources>
-            <TabItem Header="VMWare" Width="128"  IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                <Grid>
+            <TabItem Header="VMWare" Width="128">
+                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -87,8 +88,8 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="VirtualBox" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                <Grid>
+            <TabItem Header="VirtualBox">
+                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -125,8 +126,8 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="QEMU" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                <Grid>
+            <TabItem Header="QEMU">
+                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -163,8 +164,8 @@
                     </Border>
                 </Grid>
             </TabItem>
-            <TabItem Header="Settings" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                <StackPanel Margin="8">
+            <TabItem Header="Settings">
+                <StackPanel Margin="8" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                     <GroupBox Header="VMWare Executable">
                         <Grid>
                             <Grid.ColumnDefinitions>

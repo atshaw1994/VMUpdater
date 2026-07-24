@@ -70,6 +70,12 @@ namespace VMUpdater.ViewModels
         #region Properties
 
         [ObservableProperty]
+        public partial bool IsUpdating { get; set; }
+
+        [ObservableProperty]
+        public partial double UpdateProgress { get; set; }
+
+        [ObservableProperty]
         public partial HypervisorType HypervisorType { get; set; }
 
         partial void OnHypervisorTypeChanged(HypervisorType value)

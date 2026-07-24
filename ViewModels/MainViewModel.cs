@@ -173,7 +173,11 @@ namespace VMUpdater.ViewModels
             foreach (var vm in VirtualMachines)
                 EnqueueUpdateRequest(vm, forceUpdate: true);
         }
-        private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
+        private bool CanUpdateAll()
+        {
+            Trace.WriteLine($"CanUpdateAll check: !IsUpdating={!IsUpdating}, VirtualMachinesAny={VirtualMachines?.Any() == true}");
+            return !IsUpdating && VirtualMachines?.Any() == true;
+        }
 
         [RelayCommand]
         private void BrowseForVMWareExecutable()
@@ -253,7 +257,9 @@ namespace VMUpdater.ViewModels
             if (_updateQueue.TryDequeue(out var request))
             {
                 LogMessage($"Updating VM '{request.VM.DisplayName}'...");
+                request.VM.IsUpdating = true;
                 await ExecuteStartUpdate(request.VM, request.ForceUpdate);
+                request.VM.IsUpdating = false;
             }
         }
 
@@ -263,7 +269,8 @@ namespace VMUpdater.ViewModels
             if (forceUpdate) LogMessage($"[{vm.DisplayName}] User started manual update.");
 
             IsUpdating = true;
-            UpdateProgress = 10;
+            UpdateProgress = 0;
+            vm.UpdateProgress = UpdateProgress;
             StatusMessage = "Starting...";
 
             try
@@ -273,9 +280,13 @@ namespace VMUpdater.ViewModels
                     report => Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         if (report.ProgressDelta > 0)
+                        {
                             UpdateProgress = !_updateQueue.IsEmpty
                                 ? report.ProgressDelta / (_updateQueue.Count + 1)
                                 : report.ProgressDelta;
+
+                            vm.UpdateProgress = report.ProgressDelta;
+                        }
 
                         if (!string.IsNullOrEmpty(report.StatusText))
                             StatusMessage = report.StatusText;
@@ -295,6 +306,7 @@ namespace VMUpdater.ViewModels
             {
                 IsUpdating = false;
                 UpdateProgress = 0;
+                vm.UpdateProgress = UpdateProgress;
                 StatusMessage = "Ready.";
                 vm.LastUpdate = DateTime.Now;
                 await _repository.SaveAsync(vm.Model);
@@ -404,6 +416,9 @@ namespace VMUpdater.ViewModels
                     VirtualMachines.Add(vmViewModel);
                 }
             }
+
+            // recheck updateall command availability after loading profiles
+            UpdateAllCommand.NotifyCanExecuteChanged();
         }
     }
 }
