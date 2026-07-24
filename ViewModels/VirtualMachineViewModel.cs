@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.IO;
-using VMUpdater.Helpers;
 using VMUpdater.Models;
-using VMUpdater.Services;
+using VMUpdater.Services.Abstractions;
 
 namespace VMUpdater.ViewModels
 {
@@ -12,21 +11,27 @@ namespace VMUpdater.ViewModels
         private readonly Action<VirtualMachineViewModel> _onExpanded;
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
         public VirtualMachineModel Model { get; }
-        private readonly VirtualMachineService _vmService;
+        private readonly IVirtualMachineService _vmService;
+        private readonly IVirtualMachineRepository _repository;
 
-        public VirtualMachineViewModel(VirtualMachineModel model, VirtualMachineService vmService, Action<VirtualMachineViewModel> onExpanded)
+        public VirtualMachineViewModel(
+            VirtualMachineModel model,
+            IVirtualMachineService vmService,
+            IVirtualMachineRepository repository,
+            Action<VirtualMachineViewModel> onExpanded)
         {
             Model = model;
             _vmService = vmService;
+            _repository = repository;
             _onExpanded = onExpanded;
 
-            _hypervisorType = Model.Hypervisor;
-            _guestOSType = Model.GuestOSType;
-            _displayName = "New Virtual Machine";
-            _username = Model.Username;
-            _password = Model.Password;
-            _scheduleDay = Model.ScheduleDay;
-            _scheduleTime = Model.ScheduleTime;
+            HypervisorType = Model.Hypervisor;
+            GuestOSType = Model.GuestOSType;
+            DisplayName = "New Virtual Machine";
+            Username = Model.Username;
+            Password = Model.Password;
+            ScheduleDay = Model.ScheduleDay;
+            ScheduleTime = Model.ScheduleTime;
         }
 
         #region Commands
@@ -59,25 +64,27 @@ namespace VMUpdater.ViewModels
 
             if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
         }
+
         #endregion
 
         #region Properties
 
         [ObservableProperty]
-        private HypervisorType _hypervisorType;
+        public partial HypervisorType HypervisorType { get; set; }
 
         partial void OnHypervisorTypeChanged(HypervisorType value)
         {
             Model.Hypervisor = value;
+            _ = SaveAsync();
         }
 
         [ObservableProperty]
-        private string _guestOSType = string.Empty;
+        public partial string GuestOSType { get; set; } = string.Empty;
 
         partial void OnGuestOSTypeChanged(string value)
         {
             Model.GuestOSType = value;
-            _vmService?.SaveVirtualMachineEntry(Model);
+            _ = SaveAsync();
         }
 
         public string VMPath
@@ -92,54 +99,54 @@ namespace VMUpdater.ViewModels
                     (model, val) => model.VMPath = val))
                 {
                     DisplayName = !string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
-                    _vmService?.SaveVirtualMachineEntry(Model);
+                    _ = SaveAsync();
                 }
             }
         }
 
         [ObservableProperty]
-        private string _displayName = string.Empty;
+        public partial string DisplayName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _username = string.Empty;
+        public partial string Username { get; set; } = string.Empty;
 
         partial void OnUsernameChanged(string value)
         {
             Model.Username = value;
-            _vmService?.SaveVirtualMachineEntry(Model);
+            _ = SaveAsync();
         }
 
         [ObservableProperty]
-        private string _password = string.Empty;
+        public partial string Password { get; set; } = string.Empty;
 
         partial void OnPasswordChanged(string value)
         {
             Model.Password = value;
-            _vmService?.SaveVirtualMachineEntry(Model);
+            _ = SaveAsync();
         }
 
         [ObservableProperty]
-        private string _scheduleDay = string.Empty;
+        public partial string ScheduleDay { get; set; } = string.Empty;
 
         partial void OnScheduleDayChanged(string value)
         {
             Model.ScheduleDay = value;
             CalculateNextScheduledUpdate();
-            _vmService?.SaveVirtualMachineEntry(Model);
+            _ = SaveAsync();
         }
 
         [ObservableProperty]
-        private DateTime _scheduleTime;
+        public partial DateTime ScheduleTime { get; set; }
 
         partial void OnScheduleTimeChanged(DateTime value)
         {
             Model.ScheduleTime = value;
             CalculateNextScheduledUpdate();
-            _vmService?.SaveVirtualMachineEntry(Model);
+            _ = SaveAsync();
         }
 
         [ObservableProperty]
-        private bool _isExpanded;
+        public partial bool IsExpanded { get; set; }
 
         partial void OnIsExpandedChanged(bool value)
         {
@@ -148,7 +155,7 @@ namespace VMUpdater.ViewModels
         }
 
         [ObservableProperty]
-        private string _expandedIcon = "\uE70D";
+        public partial string ExpandedIcon { get; set; } = "\uE70D";
 
         public DateTime LastUpdate
         {
@@ -177,6 +184,14 @@ namespace VMUpdater.ViewModels
                 : $"Next Update: {Model.NextUpdate:dddd, MMMM d 'at' hh:mm tt}";
 
         #endregion
+
+        private async Task SaveAsync()
+        {
+            if (_repository != null)
+            {
+                await _repository.SaveAsync(Model);
+            }
+        }
 
         public void CalculateNextScheduledUpdate()
         {

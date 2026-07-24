@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using VMUpdater.Models;
-using VMUpdater.Services;
+using VMUpdater.Services.Abstractions;
 using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
@@ -14,19 +14,18 @@ namespace VMUpdater.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly string _logFilePath;
-        private readonly VirtualMachineService _vmService;
+        private readonly IVirtualMachineService _vmService;
+        private readonly IVirtualMachineRepository _repository;
         private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
 
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
 
-        // Constructor for production
-        public MainViewModel() : this(new VirtualMachineService()) { }
-
-        // Constructor for testing (Dependency Injection)
-        public MainViewModel(VirtualMachineService vmService)
+        // Primary Dependency Injection Constructor
+        public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository)
         {
             _vmService = vmService;
+            _repository = repository;
             VirtualMachines = [];
 
             string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
@@ -36,7 +35,7 @@ namespace VMUpdater.ViewModels
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
 
-            InitializeApplicationProfiles();
+            _ = InitializeApplicationProfilesAsync();
             LogMessage("Logging profile initialized.");
         }
 
@@ -101,9 +100,6 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private static void Exit() => Application.Current?.Shutdown();
 
-        /// <summary>
-        /// Shows the main window of the application, restoring it from a minimized state if necessary and bringing it to the foreground.
-        /// </summary>
         [RelayCommand]
         private static void ShowMainWindow()
         {
@@ -115,9 +111,6 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        /// <summary>
-        /// Shows the main window and switches to the log tab, bringing it to the foreground.
-        /// </summary>
         [RelayCommand]
         private static void ShowLog()
         {
@@ -130,9 +123,6 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        /// <summary>
-        /// Adds a new virtual machine to the collection based on the specified hypervisor type.
-        /// </summary>
         [RelayCommand]
         private void AddVirtualMachine(string? hypervisorType)
         {
@@ -157,31 +147,25 @@ namespace VMUpdater.ViewModels
                 newModel.Hypervisor = HypervisorType.VMWare;
             }
 
-            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, CollapseSiblings) { IsExpanded = true };
+            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _repository, CollapseSiblings) { IsExpanded = true };
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
             UpdateAllCommand.NotifyCanExecuteChanged();
         }
 
-        /// <summary>
-        /// Removes a VM from the collection and deletes its entry from the service layer.
-        /// </summary>
         [RelayCommand]
-        private void RemoveVirtualMachine(VirtualMachineViewModel? itemToRemove)
+        private async Task RemoveVirtualMachineAsync(VirtualMachineViewModel? itemToRemove)
         {
             if (itemToRemove != null)
             {
                 VirtualMachines.Remove(itemToRemove);
-                _vmService.DeleteVirtualMachineEntry(itemToRemove.Model);
+                await _repository.DeleteAsync(itemToRemove.Model);
             }
 
             UpdateAllCommand.NotifyCanExecuteChanged();
         }
 
-        /// <summary>
-        /// Executes an update for all VMs in the collection, queuing them one by one.
-        /// </summary>
         [RelayCommand(CanExecute = nameof(CanUpdateAll))]
         private void UpdateAll()
         {
@@ -191,9 +175,6 @@ namespace VMUpdater.ViewModels
         }
         private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
 
-        /// <summary>
-        /// Opens a file dialog for the user to select the VMWare executable (vmrun.exe) and saves the selected path to application settings.
-        /// </summary>
         [RelayCommand]
         private void BrowseForVMWareExecutable()
         {
@@ -210,9 +191,6 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        /// <summary>
-        /// Opens a file dialog for the user to select the VirtualBox executable (VBoxManage.exe) and saves the selected path to application settings.
-        /// </summary>
         [RelayCommand]
         private void BrowseForVirtualBoxExecutable()
         {
@@ -229,9 +207,6 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        /// <summary>
-        /// Opens a file dialog for the user to select the QEMU executable (qemu.exe) and saves the selected path to application settings.
-        /// </summary>
         [RelayCommand]
         private void BrowseForQEMUExecutable()
         {
@@ -250,18 +225,12 @@ namespace VMUpdater.ViewModels
 
         #endregion
 
-        /// <summary>
-        /// Collapses all other VMs in the collection except for the one that was expanded.
-        /// </summary>
         private void CollapseSiblings(VirtualMachineViewModel expandedItem)
         {
             foreach (var vm in VirtualMachines.Where(vm => vm != expandedItem))
                 vm.IsExpanded = false;
         }
 
-        /// <summary>
-        /// Entry point for VMs or Timers requesting an update.
-        /// </summary>
         public void EnqueueUpdateRequest(VirtualMachineViewModel vm, bool forceUpdate = false)
         {
             if (_updateQueue.Any(item => item.VM == vm))
@@ -277,9 +246,6 @@ namespace VMUpdater.ViewModels
                 LogMessage($"[{vm.DisplayName}] Update request queued. Position in queue: {_updateQueue.Count}");
         }
 
-        /// <summary>
-        /// Processes the next VM in the update queue if the system is not currently updating.
-        /// </summary>
         private async Task ProcessNextInQueueAsync()
         {
             if (IsUpdating) return;
@@ -291,9 +257,6 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        /// <summary>
-        /// Executes the update process for a specific VM, handling progress reporting and logging.
-        /// </summary>
         public async Task ExecuteStartUpdate(VirtualMachineViewModel vm, bool forceUpdate = false)
         {
             if (IsUpdating) return;
@@ -334,16 +297,13 @@ namespace VMUpdater.ViewModels
                 UpdateProgress = 0;
                 StatusMessage = "Ready.";
                 vm.LastUpdate = DateTime.Now;
-                _vmService.SaveVirtualMachineEntry(vm.Model);
+                await _repository.SaveAsync(vm.Model);
                 if (!forceUpdate) vm.CalculateNextScheduledUpdate();
 
                 _ = ProcessNextInQueueAsync();
             }
         }
 
-        /// <summary>
-        /// Runs an external process asynchronously and captures its output and error streams.
-        /// </summary>
         private Task<int> RunProcessAsync(string vmIdentifier, string fileName, string arguments)
         {
             var tcs = new TaskCompletionSource<int>();
@@ -407,9 +367,6 @@ namespace VMUpdater.ViewModels
             return tcs.Task;
         }
 
-        /// <summary>
-        /// Logs a message to both the log file and the bound LogText property for UI display.
-        /// </summary>
         public void LogMessage(string message)
         {
             try
@@ -423,16 +380,13 @@ namespace VMUpdater.ViewModels
             catch { /* Prevent filesystem context lock crashes */ }
         }
 
-        /// <summary>
-        /// Initializes the application by loading saved virtual machine entries from the service layer and creating corresponding view models for each entry.
-        /// </summary>
-        public void InitializeApplicationProfiles()
+        public async Task InitializeApplicationProfilesAsync()
         {
-            List<VirtualMachineModel> models = VirtualMachineService.LoadVirtualMachineEntries();
+            var models = await _repository.LoadAllAsync();
 
             foreach (var model in models)
             {
-                var vmViewModel = new VirtualMachineViewModel(model, _vmService, CollapseSiblings)
+                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _repository, CollapseSiblings)
                 {
                     DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine"
                 };
