@@ -24,6 +24,31 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
+            <TabControl.Resources>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <TranslateTransform />
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.3" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                        <EventTrigger RoutedEvent="Unloaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1.0" To="0.0" Duration="0:0:0.3" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.Resources>
             <TabItem Header="VMWare" Width="128"  IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
