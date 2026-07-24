@@ -393,7 +393,16 @@ namespace VMUpdater.ViewModels
 
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
                 vmViewModel.CalculateNextScheduledUpdate();
-                VirtualMachines.Add(vmViewModel);
+
+                // Ensure collection modifications run on the WPF UI Thread
+                if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(() => VirtualMachines.Add(vmViewModel));
+                }
+                else
+                {
+                    VirtualMachines.Add(vmViewModel);
+                }
             }
         }
     }

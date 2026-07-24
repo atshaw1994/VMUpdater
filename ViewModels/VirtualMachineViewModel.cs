@@ -43,7 +43,7 @@ namespace VMUpdater.ViewModels
         private void UpdateNow() => RequestStartUpdate?.Invoke(this, true);
 
         [RelayCommand]
-        public void BrowseForVirtualMachineFile()
+        public void Browse()
         {
             Microsoft.Win32.OpenFileDialog dialog = new();
             if (Model.Hypervisor == HypervisorType.VirtualBox)

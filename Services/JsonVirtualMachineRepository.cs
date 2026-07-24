@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
@@ -23,7 +24,9 @@ namespace VMUpdater.Services
 
             _jsonOptions = new JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() }
             };
         }
 
@@ -65,9 +68,9 @@ namespace VMUpdater.Services
                         vms.Add(vm);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Handle or log corrupt profiles
+                    System.Diagnostics.Debug.WriteLine($"Deserialization failed: {ex}");
                 }
             }
 
