@@ -14,9 +14,7 @@ namespace VMUpdater.ViewModels
         public VirtualMachineModel Model { get; }
         private readonly IVirtualMachineService _vmService;
         private readonly IVirtualMachineRepository _repository;
-        public readonly ObservableCollection<string> GuestOSTypes = [
-            "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
-        ];
+        public ObservableCollection<string> GuestOSTypes { get; }
 
         public VirtualMachineViewModel(
             VirtualMachineModel model,
@@ -28,6 +26,10 @@ namespace VMUpdater.ViewModels
             _vmService = vmService;
             _repository = repository;
             _onExpanded = onExpanded;
+
+            GuestOSTypes = [
+                "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
+            ];
 
             HypervisorType = Model.Hypervisor;
             GuestOSType = Model.GuestOSType;
