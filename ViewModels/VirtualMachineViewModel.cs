@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.IO;
 using VMUpdater.Models;
+using VMUpdater.Views;
 using VMUpdater.Services.Abstractions;
+using System.Windows;
 
 namespace VMUpdater.ViewModels
 {
@@ -14,18 +16,25 @@ namespace VMUpdater.ViewModels
         public VirtualMachineModel Model { get; }
         private readonly IVirtualMachineService _vmService;
         private readonly IVirtualMachineRepository _repository;
+        private readonly IHypervisorRepository _hypervisorRepository;
         public ObservableCollection<string> GuestOSTypes { get; }
+        public ObservableCollection<HypervisorModel> Hypervisors { get; }
 
         public VirtualMachineViewModel(
             VirtualMachineModel model,
             IVirtualMachineService vmService,
             IVirtualMachineRepository repository,
+            IHypervisorRepository hypervisorRepository,
             Action<VirtualMachineViewModel> onExpanded)
         {
             Model = model;
             _vmService = vmService;
             _repository = repository;
             _onExpanded = onExpanded;
+            _hypervisorRepository = hypervisorRepository;
+            Hypervisors = [];
+
+            _ = InitializeHypervisors();
 
             GuestOSTypes = [
                 "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
@@ -51,24 +60,40 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         public void Browse()
         {
-            Microsoft.Win32.OpenFileDialog dialog = new();
-            if (Model.Hypervisor == HypervisorType.VirtualBox)
+            Microsoft.Win32.OpenFileDialog dialog = new()
             {
-                dialog.Filter = "VirtualBox VM Files (*.vbox)|*.vbox";
-                dialog.Title = "Select a VirtualBox VM File";
-            }
-            else if (Model.Hypervisor == HypervisorType.QEMU)
-            {
-                dialog.Filter = "QEMU Configuration (*.qemu)|*.qemu";
-                dialog.Title = "Select QEMU Configuration Target File";
-            }
-            else if (Model.Hypervisor == HypervisorType.VMWare)
-            {
-                dialog.Filter = "VMware Configuration (*.vmx)|*.vmx";
-                dialog.Title = "Select Virtual Machine VMX Configuration Target File";
-            }
+                Title = "Select a Virtual Machine File"
+            };
 
             if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
+        }
+
+        [RelayCommand]
+        private async Task AddHypervisorAsync()
+        {
+            var dialog = new AddNewHypervisorView
+            {
+                Owner = Application.Current?.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            {
+                HypervisorModel newHypervisor = vm.CreatedHypervisor;
+
+                // Save to repository
+                await _hypervisorRepository.SaveAsync(newHypervisor);
+
+                // Insert new hypervisor right before the sentinel item at the bottom
+                int sentinelIndex = Hypervisors.IndexOf(AddNewSentinel);
+                if (sentinelIndex >= 0)
+                {
+                    Hypervisors.Insert(sentinelIndex, newHypervisor);
+                }
+                else
+                {
+                    Hypervisors.Add(newHypervisor);
+                }
+            }
         }
 
         #endregion
@@ -82,10 +107,23 @@ namespace VMUpdater.ViewModels
         public partial double UpdateProgress { get; set; }
 
         [ObservableProperty]
-        public partial HypervisorType HypervisorType { get; set; }
+        public partial HypervisorModel HypervisorType { get; set; }
 
-        partial void OnHypervisorTypeChanged(HypervisorType value)
+        partial void OnHypervisorTypeChanging(HypervisorModel value)
         {
+            if (value == AddNewSentinel)
+            {
+                AddHypervisorCommand.Execute(null);
+                OnPropertyChanged(nameof(HypervisorType));
+            }
+        }
+
+        partial void OnHypervisorTypeChanged(HypervisorModel value)
+        {
+            // Ignore sentinel if it somehow slips through
+            if (value == AddNewSentinel || value == null)
+                return;
+
             Model.Hypervisor = value;
             _ = SaveAsync();
         }
@@ -222,5 +260,33 @@ namespace VMUpdater.ViewModels
                 OnPropertyChanged(nameof(NextUpdateDisplayText));
             }
         }
+
+        private async Task InitializeHypervisors()
+        {
+            var hypervisors = await _hypervisorRepository.LoadAllAsync();
+
+            // Ensure collection updates are on the UI thread
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                Hypervisors.Clear();
+                foreach (var hypervisor in hypervisors)
+                {
+                    Hypervisors.Add(hypervisor);
+                }
+                Hypervisors.Add(AddNewSentinel);
+
+                if (Model.Hypervisor != null)
+                {
+                    var matchingHypervisor = Hypervisors.FirstOrDefault(h => h.Id == Model.Hypervisor.Id);
+                    if (matchingHypervisor != null)
+                    {
+                        // Assigning this forces WPF to recognise the matching object in Hypervisors collection
+                        HypervisorType = matchingHypervisor;
+                    }
+                }
+            });
+        }
+
+        private readonly HypervisorModel AddNewSentinel = new() { Name = "+ Add New Hypervisor..." };
     }
 }

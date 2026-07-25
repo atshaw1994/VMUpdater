@@ -77,7 +77,7 @@ namespace VMUpdater
             services.AddSingleton<MainViewModel>(); // Kept as Singleton so tray icon and window share state
 
             // Views
-            services.AddTransient<MainWindow>(provider => new MainWindow(
+            services.AddTransient(provider => new MainWindow(
                 provider.GetRequiredService<MainViewModel>()
             ));
         }

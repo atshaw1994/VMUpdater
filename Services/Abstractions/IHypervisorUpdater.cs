@@ -4,7 +4,7 @@ namespace VMUpdater.Services.Abstractions
 {
     public interface IHypervisorUpdater
     {
-        HypervisorType Hypervisor { get; }
+        HypervisorModel Hypervisor { get; }
 
         Task<bool> UpdateVMAsync(
             VirtualMachineModel vm,

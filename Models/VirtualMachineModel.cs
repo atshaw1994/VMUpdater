@@ -16,16 +16,10 @@
 
 namespace VMUpdater.Models
 {
-    public enum HypervisorType
-    {
-        VMWare,
-        VirtualBox,
-        QEMU
-    }
     public class VirtualMachineModel
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public HypervisorType Hypervisor { get; set; } = HypervisorType.VMWare;
+        public HypervisorModel Hypervisor { get; set; } = new HypervisorModel() { Name = "VMWare", ExecutablePath = string.Empty };
         public string GuestOSType { get; set; } = "Windows";
         public string VMPath { get; set; } = string.Empty;
         public string Username { get; set; } = "username";

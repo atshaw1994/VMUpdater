@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Data;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Views;
@@ -21,7 +22,6 @@ namespace VMUpdater.ViewModels
 
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
-        public ObservableCollection<HypervisorEntryViewModel> Hypervisors { get; }
 
         // Primary Dependency Injection Constructor
         public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository, IHypervisorRepository hypervisorRepository)
@@ -30,7 +30,8 @@ namespace VMUpdater.ViewModels
             _vmRepository = repository;
             _hypervisorRepository = hypervisorRepository;
             VirtualMachines = [];
-            Hypervisors = [];
+
+            BindingOperations.EnableCollectionSynchronization(VirtualMachines, new object());
 
             string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
             if (!Directory.Exists(logFolder))
@@ -40,7 +41,6 @@ namespace VMUpdater.ViewModels
             _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
 
             _ = InitializeApplicationProfilesAsync();
-            _ = InitializeHypervisorsAsync();
             LogMessage("Logging profile initialized.");
         }
 
@@ -103,12 +103,6 @@ namespace VMUpdater.ViewModels
         #region Commands
 
         [RelayCommand]
-        private void AddHypervisor()
-        {
-            Hypervisors.Add(new HypervisorEntryViewModel(new HypervisorModel(), _hypervisorRepository) { IsEditingName = true });
-        }
-
-        [RelayCommand]
         private static void Exit() => Application.Current?.Shutdown();
 
         [RelayCommand]
@@ -129,13 +123,12 @@ namespace VMUpdater.ViewModels
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
-                mainWindow.MainTabControl.SelectedIndex = 1;
                 mainWindow.Activate();
             }
         }
 
         [RelayCommand]
-        private void AddVirtualMachine(string? hypervisorType)
+        private void AddVirtualMachine()
         {
             var newModel = new VirtualMachineModel
             {
@@ -146,19 +139,7 @@ namespace VMUpdater.ViewModels
                 ScheduleTime = DateTime.Now
             };
 
-            if (hypervisorType!.Equals("VMWare", StringComparison.OrdinalIgnoreCase))
-                newModel.Hypervisor = HypervisorType.VMWare;
-            else if (hypervisorType.Equals("VirtualBox", StringComparison.OrdinalIgnoreCase))
-                newModel.Hypervisor = HypervisorType.VirtualBox;
-            else if (hypervisorType.Equals("QEMU", StringComparison.OrdinalIgnoreCase))
-                newModel.Hypervisor = HypervisorType.QEMU;
-            else
-            {
-                LogMessage($"Unknown hypervisor type: {hypervisorType}. Defaulting to VMWare.");
-                newModel.Hypervisor = HypervisorType.VMWare;
-            }
-
-            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _vmRepository, CollapseSiblings) { IsExpanded = true };
+            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _vmRepository, _hypervisorRepository, CollapseSiblings) { IsExpanded = true };
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
@@ -184,11 +165,7 @@ namespace VMUpdater.ViewModels
             foreach (var vm in VirtualMachines)
                 EnqueueUpdateRequest(vm, forceUpdate: true);
         }
-        private bool CanUpdateAll()
-        {
-            Trace.WriteLine($"CanUpdateAll check: !IsUpdating={!IsUpdating}, VirtualMachinesAny={VirtualMachines?.Any() == true}");
-            return !IsUpdating && VirtualMachines?.Any() == true;
-        }
+        private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
 
         [RelayCommand]
         private void BrowseForVMWareExecutable()
@@ -409,9 +386,10 @@ namespace VMUpdater.ViewModels
 
             foreach (var model in models)
             {
-                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _vmRepository, CollapseSiblings)
+                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _vmRepository, _hypervisorRepository, CollapseSiblings)
                 {
-                    DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine"
+                    DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine",
+                    HypervisorType = model.Hypervisor
                 };
 
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
@@ -432,22 +410,5 @@ namespace VMUpdater.ViewModels
             UpdateAllCommand.NotifyCanExecuteChanged();
         }
 
-        public async Task InitializeHypervisorsAsync()
-        {
-            var hypervisorModels = await _hypervisorRepository.LoadAllAsync();
-            foreach (var model in hypervisorModels)
-            {
-                var hypervisorViewModel = new HypervisorEntryViewModel(model, _hypervisorRepository);
-                // Ensure collection modifications run on the WPF UI Thread
-                if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
-                {
-                    dispatcher.Invoke(() => Hypervisors.Add(hypervisorViewModel));
-                }
-                else
-                {
-                    Hypervisors.Add(hypervisorViewModel);
-                }
-            }
-        }
     }
 }

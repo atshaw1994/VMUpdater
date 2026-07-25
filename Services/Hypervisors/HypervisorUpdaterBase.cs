@@ -8,7 +8,7 @@ namespace VMUpdater.Services.Hypervisors
         /// <summary>
         /// Specifies the hypervisor type handled by the implementing class.
         /// </summary>
-        public abstract HypervisorType Hypervisor { get; }
+        public abstract HypervisorModel Hypervisor { get; }
 
         /// <summary>
         /// Updates the specified virtual machine asynchronously, reporting progress and executing commands as needed.

@@ -7,7 +7,14 @@ namespace VMUpdater.Services.Hypervisors
 {
     public class VirtualBoxUpdater() : HypervisorUpdaterBase
     {
-        public override HypervisorType Hypervisor => HypervisorType.VirtualBox;
+        public override HypervisorModel Hypervisor => new()
+        {
+            Name = "VirtualBox",
+            StartVMArgument = "startvm",
+            UpdateVMArgument = "guestcontrol",
+            EndVMArgument = "controlvm",
+            NetworkCheckArgument = "guestcontrol"
+        };
 
         public override async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, string, Task<int>> runProcessAsync)
         {

@@ -14,196 +14,41 @@
         Title="VMUpdater" Height="450" Width="800">
     <Window.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <CollectionViewSource x:Key="VmwareFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VmWareFilter"/>
-        <CollectionViewSource x:Key="VirtualBoxFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_VirtualBoxFilter"/>
-        <CollectionViewSource x:Key="QemuFilteredSource" Source="{Binding VirtualMachines}" Filter="CollectionViewSource_QemuFilter"/>
+        <DataTemplate DataType="{x:Type viewmodels:VirtualMachineViewModel}">
+            <views:VirtualMachineEntry />
+        </DataTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <TabControl x:Name="MainTabControl" TabStripPlacement="Left">
-            <TabControl.Resources>
-                <Style TargetType="ContentPresenter">
-                    <Setter Property="RenderTransform">
-                        <Setter.Value>
-                            <TranslateTransform />
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <EventTrigger RoutedEvent="Loaded">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.3" />
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                        <EventTrigger RoutedEvent="Unloaded">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1.0" To="0.0" Duration="0:0:0.3" />
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TabControl.Resources>
-            <TabItem Header="VMWare" Width="128">
-                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Button Command="{Binding AddVirtualMachineCommand}" 
-                                CommandParameter="VMWare"
-                                Padding="12,6" 
-                                Margin="8,8,8,4">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xecc8;" Margin="0,0,4,0" Style="{StaticResource AddGlyphStyle}"/>
-                                <TextBlock Text="Add Machine"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+        <Button Content="&#xe713;" FontFamily="Segoe Fluent Icons" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding SettingsCommand}"/>
 
-                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
-                            BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
-                            CornerRadius="6"
-                            BorderThickness="1"
-                            Margin="0,0,8,8"
-                            Grid.Row="1">
-                        <ScrollViewer Margin="4" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl x:Name="VmwareItemsControl" ItemsSource="{Binding Source={StaticResource VmwareFilteredSource}}"
-                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <views:VirtualMachineEntry Margin="0,0,0,8"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Border>
-                </Grid>
-            </TabItem>
-            <TabItem Header="VirtualBox">
-                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+        <!-- Scrollable container for virtual machines + action button -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
+            <StackPanel Margin="10">
+                <ItemsControl ItemsSource="{Binding VirtualMachines}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Button Command="{Binding AddVirtualMachineCommand}" 
-                                CommandParameter="VirtualBox"
-                                Padding="12,6" 
-                                Margin="8,8,8,4">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xecc8;" Margin="0,0,4,0" Style="{StaticResource AddGlyphStyle}"/>
-                                <TextBlock Text="Add Machine"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                <!-- Always renders directly beneath the last VM in the StackPanel -->
+                <Button Content="Add Machine" 
+                        Command="{Binding AddVirtualMachineCommand}" 
+                        Margin="0,10,0,0" 
+                        Padding="8"
+                        HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </ScrollViewer>
 
-                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
-                            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-                            CornerRadius="6" 
-                            BorderThickness="1"
-                            Margin="0,0,8,8"
-                            Grid.Row="1">
-                        <ScrollViewer Margin="4">
-                            <ItemsControl x:Name="VirtualBoxItemsControl" ItemsSource="{Binding Source={StaticResource VirtualBoxFilteredSource}}"
-                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <views:VirtualMachineEntry Margin="0,0,0,8"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Border>
-                </Grid>
-            </TabItem>
-            <TabItem Header="QEMU">
-                <Grid IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Button Command="{Binding AddVirtualMachineCommand}" 
-                                CommandParameter="QEMU"
-                                Padding="12,6" 
-                                Margin="8,8,8,4">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xecc8;" Margin="0,0,4,0" Style="{StaticResource AddGlyphStyle}"/>
-                                <TextBlock Text="Add Machine"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-
-                    <Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" 
-                            BorderBrush="{DynamicResource ControlElevationBorderBrush}" 
-                            CornerRadius="6"
-                            BorderThickness="1"
-                            Margin="0,0,8,8"
-                            Grid.Row="1">
-                        <ScrollViewer Margin="8,4,8,8">
-                            <ItemsControl x:Name="QEMUItemsControl" ItemsSource="{Binding Source={StaticResource QemuFilteredSource}}"
-                                          Style="{StaticResource ItemsControlWithScrollBarMargin}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <views:VirtualMachineEntry Margin="0,0,0,8"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Border>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Settings">
-                <Grid Margin="8" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Hypervisor Binary Paths" FontWeight="Bold" FontStyle="Italic" Opacity="0.6" FontSize="16"/>
-                        <Button Content="&#xE710;" FontFamily="Segoe Fluent Icons" Grid.Column="1" Command="{Binding AddHypervisorCommand}"/>
-                    </Grid>
-                    <Separator Grid.Row="1"/>
-                    <!-- Here will be where users can add custom hypervisor binary paths -->
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="2">
-                        <ItemsControl ItemsSource="{Binding Hypervisors}" Style="{StaticResource ItemsControlWithScrollBarMargin}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <views:HypervisorEntry Margin="0,0,0,8"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                    <!-- Here will be where users can add custom OS update scripts -->
-                    <!--<TextBlock Text="Guest OS Update Scripts" FontWeight="Bold" FontStyle="Italic" Opacity="0.6" FontSize="16" Margin="0,8,0,0"/>
-                    <Separator/>-->
-                    
-                </Grid>
-            </TabItem>
-            <TabItem Header="Log">
-                <TextBox x:Name="LogTextBox" Margin="8" IsReadOnly="True" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" 
-                         Text="{Binding LogText}" Loaded="LogTextBox_Loaded"  TextChanged="LogTextBox_TextChanged" />
-            </TabItem>
-        </TabControl>
-
-        <StatusBar Grid.Row="1" HorizontalContentAlignment="Stretch">
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2" HorizontalContentAlignment="Stretch">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>

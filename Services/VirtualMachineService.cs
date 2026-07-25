@@ -8,7 +8,7 @@ namespace VMUpdater.Services
         /// <summary>
         /// A dictionary mapping hypervisor types to their corresponding updaters.
         /// </summary>
-        private readonly IDictionary<HypervisorType, IHypervisorUpdater> _updaters = updaters.ToDictionary(u => u.Hypervisor, u => u);
+        private readonly Dictionary<HypervisorModel, IHypervisorUpdater> _updaters = updaters.ToDictionary(u => u.Hypervisor, u => u);
 
         /// <summary>
         /// Starts the update process for a given virtual machine.

@@ -1,0 +1,100 @@
+﻿<Window x:Class="VMUpdater.Views.AddNewHypervisorView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
+        x:Name="AddWindow"
+        mc:Ignorable="d"
+        Title="Add Hypervisor" 
+        Height="420" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+
+    <Window.DataContext>
+        <viewmodels:AddHypervisorViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Add New Hypervisor" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Configure launch arguments and executable path for the new hypervisor profile." 
+                       Foreground="Gray" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Name -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Hypervisor Name" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" Padding="4,3"/>
+
+                <!-- Executable Path -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Executable Path" VerticalAlignment="Center" Margin="0,6"/>
+                <Grid Grid.Row="1" Grid.Column="1" Margin="0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding ExecutablePath, UpdateSourceTrigger=PropertyChanged}" Padding="4,3"/>
+                    <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseExecutableCommand}" Margin="6,0,0,0" Padding="10,3"/>
+                </Grid>
+
+                <!-- Start VM Argument -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Start VM Argument" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StartVMArgument, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="CLI arguments sent to boot the VM" Margin="0,4" Padding="4,3"/>
+
+                <!-- Network Check Argument -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Network Check Arg" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding NetworkCheckArgument, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="CLI arguments to verify guest IP / connectivity" Margin="0,4" Padding="4,3"/>
+
+                <!-- Update VM Argument -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Update VM Argument" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding UpdateVMArgument, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="CLI arguments to trigger updates inside the guest" Margin="0,4" Padding="4,3"/>
+
+                <!-- End VM Argument -->
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="End VM Argument" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding EndVMArgument, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="CLI arguments to shutdown or save state" Margin="0,4" Padding="4,3"/>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Bottom Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save" 
+                    Command="{Binding SaveCommand}" 
+                    CommandParameter="{Binding ElementName=AddWindow}"
+                    IsDefault="True"
+                    Width="80" Height="28" Margin="0,0,8,0"/>
+            <Button Content="Cancel" 
+                    Command="{Binding CancelCommand}" 
+                    CommandParameter="{Binding ElementName=AddWindow}"
+                    IsCancel="True"
+                    Width="80" Height="28"/>
+        </StackPanel>
+    </Grid>
+</Window>

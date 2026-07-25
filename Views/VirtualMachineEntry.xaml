@@ -97,16 +97,22 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Guest OS:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="Hypervisor:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" 
+                              Margin="0,4" 
+                              ItemsSource="{Binding Hypervisors}" 
+                              SelectedItem="{Binding HypervisorType, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Name"/>
+                    <TextBlock Text="Guest OS:" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
                     <ComboBox x:Name="VMTypeComboBox"
-                              Grid.Column="1"
-                              Margin="0,0,0,4"
+                              Grid.Column="3"
+                              Margin="0,4"
                               ItemsSource="{Binding GuestOSTypes}"
                               SelectedItem="{Binding GuestOSType, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Username:" Grid.Row="1" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,4" VerticalAlignment="Center" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Margin="0,4" VerticalAlignment="Center" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Password:" Grid.Row="1" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="3" Margin="0,0,0,4" VerticalAlignment="Center" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="3" Margin="0,4" VerticalAlignment="Center" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Every" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="ScheduleComboBox" 
                               Grid.Column="1" 

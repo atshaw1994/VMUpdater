@@ -6,7 +6,14 @@ namespace VMUpdater.Services.Hypervisors
 {
     public class QemuUpdater : IHypervisorUpdater
     {
-        public HypervisorType Hypervisor => HypervisorType.QEMU;
+        public HypervisorModel Hypervisor => new()
+        {
+            Name = "QEMU",
+            StartVMArgument = "--start",
+            UpdateVMArgument = "--update",
+            EndVMArgument = "--end",
+            NetworkCheckArgument = "--network-check"
+        };
 
         public async Task<bool> UpdateVMAsync(
             VirtualMachineModel vm,

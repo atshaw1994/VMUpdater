@@ -7,7 +7,14 @@ namespace VMUpdater.Services.Hypervisors
     public class VMWareUpdater() : HypervisorUpdaterBase
     {
         private readonly string VmrunPath = Properties.Settings.Default.VMRunPath;
-        public override HypervisorType Hypervisor => HypervisorType.VMWare;
+        public override HypervisorModel Hypervisor => new()
+        {
+            Name = "VMWare",
+            StartVMArgument = "-T ws start",
+            UpdateVMArgument = "runScriptInGuest",
+            EndVMArgument = "-T ws stop",
+            NetworkCheckArgument = "runScriptInGuest"
+        };
 
         public override async Task<bool> UpdateVMAsync(VirtualMachineModel vm, Action<UpdateProgressReport> reportProgress, Func<string, string, string, Task<int>> runProcessAsync)
         {
