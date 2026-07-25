@@ -1,22 +1,31 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using VMUpdater.Models;
+using VMUpdater.Services.Abstractions;
 
 namespace VMUpdater.ViewModels
 {
     public partial class HypervisorEntryViewModel : ObservableObject
     {
-        public HypervisorEntryViewModel() { }
+        public HypervisorModel Model { get; } = new HypervisorModel();
+        private readonly IHypervisorRepository? _repository;
 
-        public HypervisorEntryViewModel(string hypervisorName, string executablePath)
+        public HypervisorEntryViewModel(HypervisorModel model, IHypervisorRepository? repository = null)
         {
-            HypervisorName = hypervisorName;
-            HypervisorExecutablePath = executablePath;
-        }
+            Model = model;
+            _repository = repository;
 
-        public Action<HypervisorEntryViewModel>? RequestBrowseExecutable { get; set; }
+            HypervisorName = Model.Name;
+            HypervisorExecutablePath = Model.ExecutablePath;
+        }
 
         [ObservableProperty]
         public partial string HypervisorName { get; set; } = "Hypervisor";
+        partial void OnHypervisorNameChanged(string value)
+        {
+            Model.Name = value;
+            _ = SaveAsync();
+        }
 
         [ObservableProperty]
         public partial string TempName { get; set; } = string.Empty;
@@ -26,6 +35,11 @@ namespace VMUpdater.ViewModels
 
         [ObservableProperty]
         public partial string HypervisorExecutablePath { get; set; } = string.Empty;
+        partial void OnHypervisorExecutablePathChanged(string value)
+        {
+            Model.ExecutablePath = value;
+            _ = SaveAsync();
+        }
 
         [RelayCommand]
         private void EditName()
@@ -54,6 +68,14 @@ namespace VMUpdater.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 HypervisorExecutablePath = dialog.FileName;
+            }
+        }
+
+        private async Task SaveAsync()
+        {
+            if (_repository != null)
+            {
+                await _repository.SaveAsync(Model);
             }
         }
     }

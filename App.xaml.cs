@@ -63,6 +63,7 @@ namespace VMUpdater
             // Core Application Services & Infrastructure
             services.AddSingleton<ISettingsProvider, AppSettingsProvider>();
             services.AddSingleton<IVirtualMachineRepository, JsonVirtualMachineRepository>();
+            services.AddSingleton<IHypervisorRepository, JsonHypervisorRepository>();
 
             // Register Hypervisor Updaters
             services.AddTransient<IHypervisorUpdater, VMWareUpdater>();

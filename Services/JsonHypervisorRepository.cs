@@ -6,16 +6,16 @@ using VMUpdater.Services.Abstractions;
 
 namespace VMUpdater.Services
 {
-    public class JsonVirtualMachineRepository : IVirtualMachineRepository
+    public class JsonHypervisorRepository : IHypervisorRepository
     {
         private readonly string _storageFolder;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public JsonVirtualMachineRepository()
+        public JsonHypervisorRepository()
         {
             _storageFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "VMUpdater\\VirtualMachines\\"
+                "VMUpdater\\Hypervisors\\"
             );
             Directory.CreateDirectory(_storageFolder);
 
@@ -27,20 +27,20 @@ namespace VMUpdater.Services
             };
         }
 
-        public async Task SaveAsync(VirtualMachineModel vm)
+        public async Task SaveAsync(HypervisorModel hypervisor)
         {
-            ArgumentNullException.ThrowIfNull(vm);
+            ArgumentNullException.ThrowIfNull(hypervisor);
 
-            string filePath = Path.Combine(_storageFolder, $"{vm.Id:N}.json");
+            string filePath = Path.Combine(_storageFolder, $"{hypervisor.Id:N}.json");
             using FileStream stream = File.Create(filePath);
-            await JsonSerializer.SerializeAsync(stream, vm, _jsonOptions);
+            await JsonSerializer.SerializeAsync(stream, hypervisor, _jsonOptions);
         }
 
-        public Task DeleteAsync(VirtualMachineModel vm)
+        public Task DeleteAsync(HypervisorModel hypervisor)
         {
-            ArgumentNullException.ThrowIfNull(vm);
+            ArgumentNullException.ThrowIfNull(hypervisor);
 
-            string filePath = Path.Combine(_storageFolder, $"{vm.Id:N}.json");
+            string filePath = Path.Combine(_storageFolder, $"{hypervisor.Id:N}.json");
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
@@ -49,20 +49,20 @@ namespace VMUpdater.Services
             return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<VirtualMachineModel>> LoadAllAsync()
+        public async Task<IEnumerable<HypervisorModel>> LoadAllAsync()
         {
-            var vms = new List<VirtualMachineModel>();
-            if (!Directory.Exists(_storageFolder)) return vms;
+            var hypervisors = new List<HypervisorModel>();
+            if (!Directory.Exists(_storageFolder)) return hypervisors;
 
             foreach (string filePath in Directory.GetFiles(_storageFolder, "*.json"))
             {
                 try
                 {
                     using FileStream stream = File.OpenRead(filePath);
-                    var vm = await JsonSerializer.DeserializeAsync<VirtualMachineModel>(stream, _jsonOptions);
-                    if (vm != null)
+                    var hypervisor = await JsonSerializer.DeserializeAsync<HypervisorModel>(stream, _jsonOptions);
+                    if (hypervisor != null)
                     {
-                        vms.Add(vm);
+                        hypervisors.Add(hypervisor);
                     }
                 }
                 catch (Exception ex)
@@ -71,7 +71,7 @@ namespace VMUpdater.Services
                 }
             }
 
-            return vms;
+            return hypervisors;
         }
     }
 }
