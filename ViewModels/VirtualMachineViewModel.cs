@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using System.IO;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
@@ -13,6 +14,9 @@ namespace VMUpdater.ViewModels
         public VirtualMachineModel Model { get; }
         private readonly IVirtualMachineService _vmService;
         private readonly IVirtualMachineRepository _repository;
+        public readonly ObservableCollection<string> GuestOSTypes = [
+            "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
+        ];
 
         public VirtualMachineViewModel(
             VirtualMachineModel model,

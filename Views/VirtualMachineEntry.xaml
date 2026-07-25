@@ -87,13 +87,8 @@
                 <TextBlock Text="Guest OS:"/>
                 <ComboBox x:Name="VMTypeComboBox" 
                           Margin="0,2"
-                          SelectedValue="{Binding GuestOSType, UpdateSourceTrigger=PropertyChanged}" 
-                          SelectedValuePath="Content">
-                    <ComboBoxItem Content="Arch Linux" />
-                    <ComboBoxItem Content="Fedora Linux" />
-                    <ComboBoxItem Content="Debian Linux" />
-                    <ComboBoxItem Content="Windows" />
-                </ComboBox>
+                          ItemsSource="{Binding GuestOSTypes}"
+                          SelectedItem="{Binding GuestOSType, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <Grid Margin="0,2">
                     <Grid.RowDefinitions>

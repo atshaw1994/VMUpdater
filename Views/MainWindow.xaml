@@ -166,36 +166,40 @@
             </TabItem>
             <TabItem Header="Settings">
                 <StackPanel Margin="8" IsEnabled="{Binding IsUpdating, Converter={StaticResource InverseBooleanConverter}}">
-                    <GroupBox Header="VMWare Executable">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Content="Browse..." Command="{Binding BrowseForVMWareExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding VMWareExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="VirtualBox Executable">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Content="Browse..." Command="{Binding BrowseForVirtualBoxExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding VirtualBoxExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="QEMU Executable">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Content="Browse..." Command="{Binding BrowseForQEMUExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
-                            <TextBox Text="{Binding QEMUExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
-                        </Grid>
-                    </GroupBox>
+                    <TextBlock Text="Hypervisor Binary Paths" FontWeight="Bold" FontStyle="Italic" Opacity="0.6" FontSize="16"/>
+                    <Separator/>
+                    <!-- Here will be where users can add custom hypervisor binary paths -->
+                    <TextBlock Text="VMWare" FontSize="16" Margin="0,4"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Browse..." Command="{Binding BrowseForVMWareExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding VMWareExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
+                    </Grid>
+                    <TextBlock Text="VirtualBox" FontSize="16" Margin="0,4"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Browse..." Command="{Binding BrowseForVirtualBoxExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding VirtualBoxExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
+                    </Grid>
+                    <TextBlock Text="QEMU" FontSize="16" Margin="0,4"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="Browse..." Command="{Binding BrowseForQEMUExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding QEMUExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
+                    </Grid>
+                    <!-- Here will be where users can add custom OS update scripts -->
+                    <!--<TextBlock Text="Guest OS Update Scripts" FontWeight="Bold" FontStyle="Italic" Opacity="0.6" FontSize="16" Margin="0,8,0,0"/>
+                    <Separator/>-->
+                    
                 </StackPanel>
             </TabItem>
             <TabItem Header="Log">
