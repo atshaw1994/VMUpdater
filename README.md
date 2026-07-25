@@ -1,27 +1,6 @@
 # <img src="VMUpdater.ico" alt="Icon" width="32"/> VMUpdater
 
-A Windows desktop application that automates scheduled, headless system updates across multiple virtual machines — supporting VMware Workstation, VirtualBox, and QEMU.
-
-<img src="Screenshots/MainWindow.png" alt="Main Window" />
-
-## Overview
-
-VMUpdater manages a list of VMs, each with its own hypervisor type, guest OS, credentials, and weekly update schedule. At the scheduled time it headlessly boots the VM, verifies network connectivity from inside the guest, runs the appropriate package manager upgrade, then cleanly shuts the VM back down — all without any user interaction.
-
-## Features
-
-- **Multi-VM Management** — Add, configure, and independently schedule as many VMs as you need.
-- **Multi-Hypervisor Support** — Works with VMware Workstation (`vmrun`), VirtualBox (`VBoxManage`), and QEMU.
-- **Multi-OS Support** — Runs the correct upgrade command per guest OS (Arch Linux `pacman`, Ubuntu `apt-get`).
-- **Scheduled Updates** — Per-VM weekly schedule (day + time), calculated and displayed as *Next Update*.
-- **Sequential Update Queue** — Multiple update requests are processed one at a time; duplicate queuing is prevented.
-- **Manual Trigger** — Force an immediate update for any VM at any time via *Update Now*.
-- **Headless Execution** — VMs boot without a GUI and are shut down automatically after the update completes.
-- **Network Validation** — Pings `8.8.8.8` from inside the guest before running updates; aborts cleanly on failure.
-- **Progress Tracking** — A status bar and progress indicator keep you informed throughout each update.
-- **Persistent VM Profiles** — Each VM's configuration is saved as a JSON profile in `%AppData%\VMUpdater\`.
-- **System Tray Integration** — Minimizes to the system tray and shows live update status in the tooltip.
-- **Activity Log** — In-app log tab plus timestamped log files in `Logs\` provide a full audit trail.
+This branch is for implementing the ability to enter custom hypervisors via locating their respective hypervisor binary tool. 
 
 ## Requirements
 

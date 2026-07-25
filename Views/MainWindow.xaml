@@ -196,6 +196,7 @@
                         <Button Content="Browse..." Command="{Binding BrowseForQEMUExecutableCommand}" Padding="12,6" FontWeight="SemiBold"/>
                         <TextBox Text="{Binding QEMUExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
                     </Grid>
+                    
                     <!-- Here will be where users can add custom OS update scripts -->
                     <!--<TextBlock Text="Guest OS Update Scripts" FontWeight="Bold" FontStyle="Italic" Opacity="0.6" FontSize="16" Margin="0,8,0,0"/>
                     <Separator/>-->
