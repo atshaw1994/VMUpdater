@@ -29,9 +29,9 @@ namespace VMUpdater.ViewModels
             _repository = repository;
             VirtualMachines = [];
             Hypervisors = [
-                new HypervisorEntryViewModel("VMWare", "vmrun.exe"),
-                new HypervisorEntryViewModel("VirtualBox", "VBoxManage.exe"),
-                new HypervisorEntryViewModel("QEMU", "qemu-system-x86_64.exe")
+                new HypervisorEntryViewModel("VMWare", "C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmrun.exe"),
+                new HypervisorEntryViewModel("VirtualBox", "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"),
+                new HypervisorEntryViewModel("QEMU", "C:\\Program Files\\QEMU\\qemu-system-x86_64.exe")
             ];
 
             string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");

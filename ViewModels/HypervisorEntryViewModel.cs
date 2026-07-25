@@ -13,6 +13,8 @@ namespace VMUpdater.ViewModels
             HypervisorExecutablePath = executablePath;
         }
 
+        public Action<HypervisorEntryViewModel>? RequestBrowseExecutable { get; set; }
+
         [ObservableProperty]
         public partial string HypervisorName { get; set; } = "Hypervisor";
 
@@ -48,7 +50,11 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         public void Browse()
         {
-
+            Microsoft.Win32.OpenFileDialog dialog = new();
+            if (dialog.ShowDialog() == true)
+            {
+                HypervisorExecutablePath = dialog.FileName;
+            }
         }
     }
 }
