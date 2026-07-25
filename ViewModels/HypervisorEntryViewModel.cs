@@ -5,6 +5,14 @@ namespace VMUpdater.ViewModels
 {
     public partial class HypervisorEntryViewModel : ObservableObject
     {
+        public HypervisorEntryViewModel() { }
+
+        public HypervisorEntryViewModel(string hypervisorName, string executablePath)
+        {
+            HypervisorName = hypervisorName;
+            HypervisorExecutablePath = executablePath;
+        }
+
         [ObservableProperty]
         public partial string HypervisorName { get; set; } = "Hypervisor";
 
@@ -13,6 +21,9 @@ namespace VMUpdater.ViewModels
 
         [ObservableProperty]
         public partial bool IsEditingName { get; set; }
+
+        [ObservableProperty]
+        public partial string HypervisorExecutablePath { get; set; } = string.Empty;
 
         [RelayCommand]
         private void EditName()

@@ -128,7 +128,8 @@
                 <Setter Property="Margin" Value="0,0,0,0"/>
 
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=MainScrollViewer}" Value="Visible">
+                    <DataTrigger Binding="{Binding Path=ComputedVerticalScrollBarVisibility, 
+                                                    RelativeSource={RelativeSource AncestorType={x:Type ScrollViewer}}}" Value="Visible">
                         <Setter Property="Margin" Value="0,0,15,0"/>
                     </DataTrigger>
                 </Style.Triggers>

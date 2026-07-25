@@ -20,6 +20,7 @@ namespace VMUpdater.ViewModels
 
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
+        public ObservableCollection<HypervisorEntryViewModel> Hypervisors { get; }
 
         // Primary Dependency Injection Constructor
         public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository)
@@ -27,6 +28,11 @@ namespace VMUpdater.ViewModels
             _vmService = vmService;
             _repository = repository;
             VirtualMachines = [];
+            Hypervisors = [
+                new HypervisorEntryViewModel("VMWare", "vmrun.exe"),
+                new HypervisorEntryViewModel("VirtualBox", "VBoxManage.exe"),
+                new HypervisorEntryViewModel("QEMU", "qemu-system-x86_64.exe")
+            ];
 
             string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
             if (!Directory.Exists(logFolder))
@@ -96,6 +102,12 @@ namespace VMUpdater.ViewModels
         #endregion
 
         #region Commands
+
+        [RelayCommand]
+        private void AddHypervisor()
+        {
+            Hypervisors.Add(new HypervisorEntryViewModel() { IsEditingName = true });
+        }
 
         [RelayCommand]
         private static void Exit() => Application.Current?.Shutdown();

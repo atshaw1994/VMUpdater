@@ -6,42 +6,52 @@
              xmlns:local="clr-namespace:VMUpdater.Views"
              xmlns:vm="clr-namespace:VMUpdater.ViewModels"
              xmlns:helpers="clr-namespace:VMUpdater.Helpers"
-             mc:Ignorable="d" d:DesignWidth="800">
-    <UserControl.DataContext>
-        <vm:HypervisorEntryViewModel />
-    </UserControl.DataContext>
+             mc:Ignorable="d" 
+             d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type=vm:HypervisorEntryViewModel, IsDesignTimeCreatable=True}">
+
     <UserControl.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
+
     <StackPanel>
-        <StackPanel Margin="0,4" Orientation="Horizontal" 
-                    Visibility="{Binding IsEditingName, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
-            <TextBlock Text="{Binding HypervisorName}" FontSize="16" />
-            <Button Content="&#xE70f;" FontFamily="Segoe MDL2 Assets" Margin="8,0" Command="{Binding EditNameCommand}" />
-        </StackPanel>
+        <!-- Display Mode -->
+        <Grid Margin="0,4" Visibility="{Binding IsEditingName, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+            <TextBlock Text="{Binding HypervisorName}" Margin="8,0,0,0" FontSize="16" VerticalAlignment="Center" />
+            <Button Content="&#xE70f;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding EditNameCommand}" />
+        </Grid>
+
         <!-- Edit Mode -->
         <Grid Margin="0,4" Visibility="{Binding IsEditingName, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <TextBox Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}" FontSize="16" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}" FontSize="16" VerticalAlignment="Center"/>
 
             <Button Content="&#xE711;" 
                     FontFamily="Segoe MDL2 Assets" 
-                    Margin="8,0" 
+                    Margin="8,0,0,0" 
                     Grid.Column="1"
                     Command="{Binding CancelEditCommand}" />
 
             <Button Content="&#xE8fb;" 
                     FontFamily="Segoe MDL2 Assets" 
-                    Margin="8,0" 
+                    Margin="8,0,0,0" 
                     Grid.Column="2"
                     Command="{Binding SaveNameCommand}" />
         </Grid>
-        <Grid>
+
+        <!-- Path Selector -->
+        <Grid Margin="0,4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button Content="Browse..." Command="{Binding BrowseCommand}" Padding="12,6" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding HypervisorExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0" Grid.Column="1"/>
+            <TextBox Text="{Binding HypervisorExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0" Grid.Column="1" VerticalContentAlignment="Center"/>
         </Grid>
     </StackPanel>
 </UserControl>
