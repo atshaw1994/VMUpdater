@@ -7,7 +7,8 @@
         x:Name="AddWindow"
         mc:Ignorable="d"
         Title="Add Guest OS" 
-        Height="420" Width="520"
+        SizeToContent="Height"
+        Width="520"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False">
@@ -25,16 +26,16 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Add New Hypervisor" FontSize="18" FontWeight="SemiBold"/>
-            <TextBlock Text="Configure launch arguments and executable path for the new hypervisor profile." 
-                       Foreground="Gray" Margin="0,4,0,0"/>
+            <TextBlock Text="Add New Guest OS" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            <TextBlock Text="Configure launch arguments and executable path for the new guest OS profile." 
+                       Foreground="Gray" Margin="0,4,0,0" TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Form Fields -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -47,11 +48,11 @@
                 </Grid.RowDefinitions>
 
                 <!-- Name -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Hypervisor Name" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Guest OS Name" VerticalAlignment="Center" Margin="0,6"/>
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" Padding="4,3"/>
 
                 <!-- Network Check Argument Template -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Network Check Argument Template" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Network Check Argument Template" VerticalAlignment="Center" Margin="0,6,8,6"/>
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NetworkCheckArgumentTemplate, UpdateSourceTrigger=PropertyChanged}" 
                          ToolTip="CLI arguments to check network connectivity inside the guest" Margin="0,4" Padding="4,3"/>
             </Grid>

@@ -44,15 +44,15 @@ namespace VMUpdater.ViewModels
             if (!Hypervisors.Any(h => h.Name == AddNewHypervisorSentinel.Name))
                 Hypervisors.Add(AddNewHypervisorSentinel);
 
-            if (!GuestOSTypes.Any(os => os.Name == AddNewGuestOSSentinel.Name))
-                GuestOSTypes.Add(AddNewGuestOSSentinel);
-
             GuestOSTypes =
             [
                 DefaultGuestOSTypes.Ubuntu,
                 DefaultGuestOSTypes.Arch,
                 DefaultGuestOSTypes.Windows
             ];
+
+            if (!GuestOSTypes.Any(os => os.Name == AddNewGuestOSSentinel.Name))
+                GuestOSTypes.Add(AddNewGuestOSSentinel);
 
             var hypervisor = hypervisorRepository.GetByIdAsync(model.HypervisorId).Result;
             hypervisor ??= new HypervisorModel();

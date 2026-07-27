@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using VMUpdater.Services;
 using VMUpdater.Services.Abstractions;
-using VMUpdater.Services.Hypervisors;
 using VMUpdater.Services.Orchestration;
 using VMUpdater.ViewModels;
 using VMUpdater.Views;
