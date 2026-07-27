@@ -1,9 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Data;
 using VMUpdater.Models;
@@ -22,6 +25,7 @@ namespace VMUpdater.ViewModels
 
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
+        public ObservableCollection<HypervisorModel> Hypervisors { get; }
 
         // Primary Dependency Injection Constructor
         public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository, IHypervisorRepository hypervisorRepository)
@@ -30,6 +34,7 @@ namespace VMUpdater.ViewModels
             _vmRepository = repository;
             _hypervisorRepository = hypervisorRepository;
             VirtualMachines = [];
+            Hypervisors = [];
 
             BindingOperations.EnableCollectionSynchronization(VirtualMachines, new object());
 
@@ -41,10 +46,14 @@ namespace VMUpdater.ViewModels
             _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
 
             _ = InitializeApplicationProfilesAsync();
+            _ = InitializeHypervisorsProfilesAsync();
             LogMessage("Logging profile initialized.");
         }
 
         #region Properties
+
+        [ObservableProperty]
+        public partial bool IsFindRowVisible { get; set; } = false;
 
         [ObservableProperty]
         public partial double UpdateProgress { get; set; } = 0.0;
@@ -103,6 +112,156 @@ namespace VMUpdater.ViewModels
         #region Commands
 
         [RelayCommand]
+        private static void About()
+        {
+            var aboutWindow = new AboutDialog
+            {
+                Owner = Application.Current?.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            aboutWindow.ShowDialog();
+        }
+
+        [RelayCommand]
+        private void Export()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Zip Files (*.zip)|*.zip",
+                Title = "Export Configuration Package",
+                FileName = "VMUpdaterPackage.zip"
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            try
+            {
+                if (File.Exists(dialog.FileName))
+                {
+                    File.Delete(dialog.FileName);
+                }
+
+                using (var zipArchive = ZipFile.Open(dialog.FileName, ZipArchiveMode.Create))
+                {
+                    var options = new JsonSerializerOptions { WriteIndented = true };
+
+                    // 1. Export Hypervisors
+                    var hypervisorsEntry = zipArchive.CreateEntry("hypervisors.json");
+                    using (var writer = new StreamWriter(hypervisorsEntry.Open()))
+                    {
+                        var json = JsonSerializer.Serialize(Hypervisors.ToList(), options);
+                        writer.Write(json);
+                    }
+
+                    // 2. Export Machines
+                    var machinesEntry = zipArchive.CreateEntry("machines.json");
+                    using (var writer = new StreamWriter(machinesEntry.Open()))
+                    {
+                        var machineModels = VirtualMachines.Select(vm => vm.Model).ToList();
+                        var json = JsonSerializer.Serialize(machineModels, options);
+                        writer.Write(json);
+                    }
+                }
+
+                LogMessage($"Successfully exported package to {dialog.FileName}.");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error exporting package: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task Import()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Zip Files (*.zip)|*.zip",
+                Title = "Import Configuration Package"
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            try
+            {
+                List<VirtualMachineModel> importedMachines = [];
+                List<HypervisorModel> importedHypervisors = [];
+
+                using (var zipArchive = ZipFile.OpenRead(dialog.FileName))
+                {
+                    // 1. Read Hypervisors first
+                    var hypervisorEntry = zipArchive.GetEntry("hypervisors.json");
+                    if (hypervisorEntry != null)
+                    {
+                        using var reader = new StreamReader(hypervisorEntry.Open());
+                        var json = reader.ReadToEnd();
+                        importedHypervisors = JsonSerializer.Deserialize<List<HypervisorModel>>(json) ?? [];
+                    }
+
+                    // 2. Read Machines
+                    var machineEntry = zipArchive.GetEntry("machines.json");
+                    if (machineEntry != null)
+                    {
+                        using var reader = new StreamReader(machineEntry.Open());
+                        var json = reader.ReadToEnd();
+                        importedMachines = JsonSerializer.Deserialize<List<VirtualMachineModel>>(json) ?? [];
+                    }
+                }
+
+                // Process Hypervisors: Ignore existing items by ID
+                int newHypervisorsCount = 0;
+                foreach (var hvModel in importedHypervisors)
+                {
+                    if (!Hypervisors.Any(h => h.Id == hvModel.Id))
+                    {
+                        Hypervisors.Add(hvModel);
+                        newHypervisorsCount++;
+                        await _hypervisorRepository.SaveAsync(hvModel);
+                    }
+                }
+
+                // Process Virtual Machines: Ignore existing items by ID
+                int newMachinesCount = 0;
+                foreach (var vmModel in importedMachines)
+                {
+                    if (!VirtualMachines.Any(vm => vm.Model.Id == vmModel.Id))
+                    {
+                        // Re-link the VM's Hypervisor reference to the instance active in memory
+                        if (vmModel.Hypervisor != null)
+                        {
+                            var existingHv = Hypervisors.FirstOrDefault(h => h.Id == vmModel.Hypervisor.Id);
+                            if (existingHv != null)
+                            {
+                                vmModel.Hypervisor = existingHv;
+                            }
+                        }
+
+                        var vmViewModel = new VirtualMachineViewModel(
+                            vmModel,
+                            _vmService,
+                            _vmRepository,
+                            _hypervisorRepository,
+                            Hypervisors,
+                            CollapseSiblings
+                        );
+
+                        vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+
+                        VirtualMachines.Add(vmViewModel);
+                        newMachinesCount++;
+                        await _vmRepository.SaveAsync(vmModel);
+                    }
+                }
+
+                LogMessage($"Import complete. Added {newMachinesCount} new machines and {newHypervisorsCount} new hypervisors from {dialog.FileName}.");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error importing package: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
         private static void Exit() => Application.Current?.Shutdown();
 
         [RelayCommand]
@@ -128,6 +287,20 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
+        private async Task AddHypervisor()
+        {
+            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+
+            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            {
+                HypervisorModel newHypervisor = vm.CreatedHypervisor;
+
+                // Save to repository
+                await _hypervisorRepository.SaveAsync(newHypervisor);
+            }
+        }
+
+        [RelayCommand]
         private void AddVirtualMachine()
         {
             var newModel = new VirtualMachineModel
@@ -139,7 +312,7 @@ namespace VMUpdater.ViewModels
                 ScheduleTime = DateTime.Now
             };
 
-            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _vmRepository, _hypervisorRepository, CollapseSiblings) { IsExpanded = true };
+            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _vmRepository, _hypervisorRepository, Hypervisors, CollapseSiblings) { IsExpanded = true };
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
@@ -214,6 +387,9 @@ namespace VMUpdater.ViewModels
                 QEMUExecutablePath = dialog.FileName;
             }
         }
+
+        [RelayCommand]
+        private void ToggleFindRow() => IsFindRowVisible = !IsFindRowVisible;
 
         #endregion
 
@@ -386,7 +562,7 @@ namespace VMUpdater.ViewModels
 
             foreach (var model in models)
             {
-                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _vmRepository, _hypervisorRepository, CollapseSiblings)
+                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _vmRepository, _hypervisorRepository, Hypervisors, CollapseSiblings)
                 {
                     DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine",
                     HypervisorType = model.Hypervisor
@@ -408,6 +584,19 @@ namespace VMUpdater.ViewModels
 
             // recheck updateall command availability after loading profiles
             UpdateAllCommand.NotifyCanExecuteChanged();
+        }
+
+        private async Task InitializeHypervisorsProfilesAsync()
+        {
+            var hypervisors = await _hypervisorRepository.LoadAllAsync();
+
+            // Ensure collection updates are on the UI thread
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                Hypervisors.Clear();
+                foreach (var hypervisor in hypervisors)
+                    Hypervisors.Add(hypervisor);
+            });
         }
 
     }

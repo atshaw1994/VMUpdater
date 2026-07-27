@@ -15,7 +15,7 @@ namespace VMUpdater.ViewModels
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
         public VirtualMachineModel Model { get; }
         private readonly IVirtualMachineService _vmService;
-        private readonly IVirtualMachineRepository _repository;
+        private readonly IVirtualMachineRepository _repository; 
         private readonly IHypervisorRepository _hypervisorRepository;
         public ObservableCollection<string> GuestOSTypes { get; }
         public ObservableCollection<HypervisorModel> Hypervisors { get; }
@@ -23,18 +23,22 @@ namespace VMUpdater.ViewModels
         public VirtualMachineViewModel(
             VirtualMachineModel model,
             IVirtualMachineService vmService,
-            IVirtualMachineRepository repository,
+            IVirtualMachineRepository repository, 
             IHypervisorRepository hypervisorRepository,
+            ObservableCollection<HypervisorModel> hypervisors,
             Action<VirtualMachineViewModel> onExpanded)
         {
             Model = model;
             _vmService = vmService;
             _repository = repository;
-            _onExpanded = onExpanded;
+            _onExpanded = onExpanded; 
             _hypervisorRepository = hypervisorRepository;
-            Hypervisors = [];
+            Hypervisors = hypervisors;
 
-            _ = InitializeHypervisors();
+            if (!Hypervisors.Any(h => h.Name == AddNewSentinel.Name))
+            {
+                Hypervisors.Add(AddNewSentinel);
+            }
 
             GuestOSTypes = [
                 "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
@@ -259,32 +263,6 @@ namespace VMUpdater.ViewModels
                 Model.NextUpdate = calculated;
                 OnPropertyChanged(nameof(NextUpdateDisplayText));
             }
-        }
-
-        private async Task InitializeHypervisors()
-        {
-            var hypervisors = await _hypervisorRepository.LoadAllAsync();
-
-            // Ensure collection updates are on the UI thread
-            Application.Current?.Dispatcher.Invoke(() =>
-            {
-                Hypervisors.Clear();
-                foreach (var hypervisor in hypervisors)
-                {
-                    Hypervisors.Add(hypervisor);
-                }
-                Hypervisors.Add(AddNewSentinel);
-
-                if (Model.Hypervisor != null)
-                {
-                    var matchingHypervisor = Hypervisors.FirstOrDefault(h => h.Id == Model.Hypervisor.Id);
-                    if (matchingHypervisor != null)
-                    {
-                        // Assigning this forces WPF to recognise the matching object in Hypervisors collection
-                        HypervisorType = matchingHypervisor;
-                    }
-                }
-            });
         }
 
         private readonly HypervisorModel AddNewSentinel = new() { Name = "+ Add New Hypervisor..." };

@@ -21,34 +21,92 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Button Content="&#xe713;" FontFamily="Segoe Fluent Icons" HorizontalAlignment="Right" Margin="0,0,10,0" Command="{Binding SettingsCommand}"/>
+        <Menu>
+            <MenuItem Header="File" Width="64">
+                <MenuItem Header="Add New Machine" Width="256" Command="{Binding AddVirtualMachineCommand}"/>
+                <MenuItem Header="Add New Hypervisor" Width="256" Command="{Binding AddHypervisorCommand}"/>
+                <MenuItem Header="Import" Width="256" Command="{Binding ImportCommand}"/>
+                <MenuItem Header="Export" Width="256" Command="{Binding ExportCommand}"/>
+                <Separator/>
+                <MenuItem Header="About" Width="256" Command="{Binding AboutCommand}"/>
+                <MenuItem Header="Exit" Width="256" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Edit" Width="64">
+                <MenuItem Header="Cut" Width="256" Command="ApplicationCommands.Cut"/>
+                <MenuItem Header="Copy" Width="256" Command="ApplicationCommands.Copy"/>
+                <MenuItem Header="Paste" Width="256" Command="ApplicationCommands.Paste"/>
+                <Separator/>
+                <MenuItem Header="Find" Width="256" Command="{Binding ToggleFindRowCommand}"/>
+            </MenuItem>
+        </Menu>
 
-        <!-- Scrollable container for virtual machines + action button -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
-            <StackPanel Margin="10">
-                <ItemsControl ItemsSource="{Binding VirtualMachines}">
+        <Grid Grid.Row="1" Height="0" ClipToBounds="True" d:Height="40">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsFindRowVisible}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                         To="40.0" 
+                                                         Duration="0:0:0.25">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                         To="0.0" 
+                                                         Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseIn" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="FindTextBox" Margin="8,0" Height="30"/>
+            <Button Grid.Column="1" Content="&#xe721;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" 
+                    Command="ApplicationCommands.Find" CommandParameter="{Binding Text, ElementName=FindTextBox}"/>
+            <Button Grid.Column="2" Content="&#xe711;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}"/>
+        </Grid>
+
+        <Border Grid.Row="2" Background="{DynamicResource SmokeFillColorDefaultBrush}">
+            <!-- Scrollable container for virtual machines + action button -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl Margin="10" ItemsSource="{Binding VirtualMachines}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
-
-                <!-- Always renders directly beneath the last VM in the StackPanel -->
-                <Button Content="Add Machine" 
-                        Command="{Binding AddVirtualMachineCommand}" 
-                        Margin="0,10,0,0" 
-                        Padding="8"
-                        HorizontalAlignment="Stretch"/>
-            </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Border>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2" HorizontalContentAlignment="Stretch">
+        <StatusBar Grid.Row="3" HorizontalContentAlignment="Stretch">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
