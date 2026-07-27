@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
+using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services.Orchestration
 {
@@ -23,8 +24,7 @@ namespace VMUpdater.Services.Orchestration
                 StatusText = $"Starting VM via {hypervisor.Name}..."
             });
 
-            string startArgs = CommandTemplateExpander.ExpandArguments(
-                hypervisor.StartVMArgumentTemplate, vm);
+            string startArgs = CommandTemplateExpander.ExpandArguments(hypervisor.StartVMArgumentTemplate, vm);
 
             int startCode = await runProcessAsync(vmIdentifier, hypervisor.ExecutablePath, startArgs);
             if (startCode != 0) return false;
@@ -38,8 +38,7 @@ namespace VMUpdater.Services.Orchestration
                     StatusText = "Checking guest readiness..."
                 });
 
-                string netArgs = CommandTemplateExpander.ExpandArguments(
-                    hypervisor.RunScriptArgumentTemplate, vm, "ping -c 3 8.8.8.8");
+                string netArgs = CommandTemplateExpander.ExpandArguments(hypervisor.RunScriptArgumentTemplate, vm, GuestOSProvider.GetNetworkCheckCommand(guestOS.Name));
 
                 int netCode = await runProcessAsync(vmIdentifier, hypervisor.ExecutablePath, netArgs);
                 if (netCode != 0) return false;
@@ -52,8 +51,7 @@ namespace VMUpdater.Services.Orchestration
                 StatusText = "Running guest updates..."
             });
 
-            string runScriptArgs = CommandTemplateExpander.ExpandArguments(
-                hypervisor.RunScriptArgumentTemplate, vm, scriptCommand);
+            string runScriptArgs = CommandTemplateExpander.ExpandArguments(hypervisor.RunScriptArgumentTemplate, vm, scriptCommand);
 
             int scriptCode = await runProcessAsync(vmIdentifier, hypervisor.ExecutablePath, runScriptArgs);
 
@@ -64,8 +62,7 @@ namespace VMUpdater.Services.Orchestration
                 StatusText = "Stopping VM..."
             });
 
-            string stopArgs = CommandTemplateExpander.ExpandArguments(
-                hypervisor.StopVMArgumentTemplate, vm);
+            string stopArgs = CommandTemplateExpander.ExpandArguments(hypervisor.StopVMArgumentTemplate, vm);
 
             await runProcessAsync(vmIdentifier, hypervisor.ExecutablePath, stopArgs);
 

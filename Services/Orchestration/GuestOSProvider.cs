@@ -65,8 +65,7 @@
                 string safePassword = (password ?? string.Empty).Replace("'", "'\\''");
 
                 // Standard wrapper to feed sudo password via STDIN safely
-                string Sudo(string command) =>
-                    $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c '{command}'";
+                string Sudo(string command) => $"printf '%s\\n' '{safePassword}' | sudo -S -p '' sh -c '{command}'";
 
                 return osType.Trim().ToLowerInvariant() switch
                 {

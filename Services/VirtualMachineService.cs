@@ -1,6 +1,7 @@
 ﻿using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
+using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services
 {
@@ -28,10 +29,12 @@ namespace VMUpdater.Services
             GuestOSModel? guestOS = await guestOSRepository.GetByIdAsync(vmData.GuestOSId);
             if (guestOS == null) return;
 
+            string guestOSUpdateScript = GuestOSProvider.GetOsUpdateScript(guestOS.Name, vmData.Password);
+
             bool success = false;
             try
             {
-                success = await updater.UpdateVMAsync(hypervisor, guestOS, vmData, hypervisor.RunScriptArgumentTemplate, progressCallback, runProcessExecutor);
+                success = await updater.UpdateVMAsync(hypervisor, guestOS, vmData, guestOSUpdateScript, progressCallback, runProcessExecutor);
             }
             finally
             {
