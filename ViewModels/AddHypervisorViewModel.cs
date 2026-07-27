@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
-using System.Xml.Linq;
 using VMUpdater.Models;
 
 namespace VMUpdater.ViewModels
@@ -26,13 +25,10 @@ namespace VMUpdater.ViewModels
         private string _startVMArgument = string.Empty;
 
         [ObservableProperty]
-        private string _networkCheckArgument = string.Empty;
+        private string _stopVMArgument = string.Empty;
 
         [ObservableProperty]
-        private string _updateVMArgument = string.Empty;
-
-        [ObservableProperty]
-        private string _endVMArgument = string.Empty;
+        private string _runScriptArgument = string.Empty;
 
         #endregion
 
@@ -70,10 +66,9 @@ namespace VMUpdater.ViewModels
             // Populate the new model instance
             CreatedHypervisor.Name = Name.Trim();
             CreatedHypervisor.ExecutablePath = ExecutablePath.Trim();
-            CreatedHypervisor.StartVMArgument = StartVMArgument.Trim();
-            CreatedHypervisor.NetworkCheckArgument = NetworkCheckArgument.Trim();
-            CreatedHypervisor.UpdateVMArgument = UpdateVMArgument.Trim();
-            CreatedHypervisor.EndVMArgument = EndVMArgument.Trim();
+            CreatedHypervisor.StartVMArgumentTemplate = StartVMArgument.Trim();
+            CreatedHypervisor.StopVMArgumentTemplate = StopVMArgument.Trim();
+            CreatedHypervisor.RunScriptArgumentTemplate = RunScriptArgument.Trim();
 
             // Set DialogResult to true to signal successful creation
             if (window != null)

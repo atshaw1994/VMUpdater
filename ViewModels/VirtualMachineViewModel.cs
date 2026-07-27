@@ -6,6 +6,7 @@ using VMUpdater.Models;
 using VMUpdater.Views;
 using VMUpdater.Services.Abstractions;
 using System.Windows;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.ViewModels
 {
@@ -15,37 +16,52 @@ namespace VMUpdater.ViewModels
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
         public VirtualMachineModel Model { get; }
         private readonly IVirtualMachineService _vmService;
-        private readonly IVirtualMachineRepository _repository; 
+        private readonly IVirtualMachineRepository _repository;
         private readonly IHypervisorRepository _hypervisorRepository;
-        public ObservableCollection<string> GuestOSTypes { get; }
+        private readonly IGuestOSRepository _guestOSRepository;
+        public ObservableCollection<GuestOSModel> GuestOSTypes { get; }
         public ObservableCollection<HypervisorModel> Hypervisors { get; }
 
         public VirtualMachineViewModel(
             VirtualMachineModel model,
             IVirtualMachineService vmService,
-            IVirtualMachineRepository repository, 
+            IVirtualMachineRepository repository,
             IHypervisorRepository hypervisorRepository,
+            IGuestOSRepository guestOSRepository,
             ObservableCollection<HypervisorModel> hypervisors,
+            ObservableCollection<GuestOSModel> guestOSTypes,
             Action<VirtualMachineViewModel> onExpanded)
         {
             Model = model;
             _vmService = vmService;
             _repository = repository;
-            _onExpanded = onExpanded; 
+            _onExpanded = onExpanded;
             _hypervisorRepository = hypervisorRepository;
+            _guestOSRepository = guestOSRepository;
             Hypervisors = hypervisors;
+            GuestOSTypes = guestOSTypes;
 
-            if (!Hypervisors.Any(h => h.Name == AddNewSentinel.Name))
-            {
-                Hypervisors.Add(AddNewSentinel);
-            }
+            if (!Hypervisors.Any(h => h.Name == AddNewHypervisorSentinel.Name))
+                Hypervisors.Add(AddNewHypervisorSentinel);
 
-            GuestOSTypes = [
-                "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
+            if (!GuestOSTypes.Any(os => os.Name == AddNewGuestOSSentinel.Name))
+                GuestOSTypes.Add(AddNewGuestOSSentinel);
+
+            GuestOSTypes =
+            [
+                DefaultGuestOSTypes.Ubuntu,
+                DefaultGuestOSTypes.Arch,
+                DefaultGuestOSTypes.Windows
             ];
 
-            HypervisorType = Model.Hypervisor;
-            GuestOSType = Model.GuestOSType;
+            var hypervisor = hypervisorRepository.GetByIdAsync(model.HypervisorId).Result;
+            hypervisor ??= new HypervisorModel();
+
+            var guestOS = guestOSRepository.GetByIdAsync(model.GuestOSId).Result;
+            guestOS ??= DefaultGuestOSTypes.Windows;
+
+            HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
+            GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
             DisplayName = "New Virtual Machine";
             Username = Model.Username;
             Password = Model.Password;
@@ -75,10 +91,9 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private async Task AddHypervisorAsync()
         {
-            var dialog = new AddNewHypervisorView
-            {
-                Owner = Application.Current?.MainWindow
-            };
+            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+
+            var currentHypervisor = HypervisorType;
 
             if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
             {
@@ -88,15 +103,47 @@ namespace VMUpdater.ViewModels
                 await _hypervisorRepository.SaveAsync(newHypervisor);
 
                 // Insert new hypervisor right before the sentinel item at the bottom
-                int sentinelIndex = Hypervisors.IndexOf(AddNewSentinel);
+                int sentinelIndex = Hypervisors.IndexOf(AddNewHypervisorSentinel);
                 if (sentinelIndex >= 0)
-                {
                     Hypervisors.Insert(sentinelIndex, newHypervisor);
-                }
                 else
-                {
                     Hypervisors.Add(newHypervisor);
-                }
+
+                HypervisorType = newHypervisor;
+            }
+            else
+            {
+                HypervisorType = currentHypervisor;
+            }
+        }
+
+
+        [RelayCommand]
+        private async Task AddGuestOSAsync()
+        {
+            var dialog = new AddGuestOSView { Owner = Application.Current?.MainWindow };
+
+            var currentGuestOS = GuestOSType;
+
+            if (dialog.ShowDialog() == true && dialog.DataContext is AddGuestOSViewModel vm)
+            {
+                GuestOSModel newGuestOS = vm.CreatedGuestOS;
+
+                // Save to repository
+                await _guestOSRepository.SaveAsync(newGuestOS);
+
+                // Insert new guest OS right before the sentinel item at the bottom
+                int sentinelIndex = GuestOSTypes.IndexOf(AddNewGuestOSSentinel);
+                if (sentinelIndex >= 0)
+                    GuestOSTypes.Insert(sentinelIndex, newGuestOS);
+                else
+                    GuestOSTypes.Add(newGuestOS);
+
+                GuestOSType = newGuestOS;
+            }
+            else
+            {
+                GuestOSType = currentGuestOS;
             }
         }
 
@@ -115,7 +162,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnHypervisorTypeChanging(HypervisorModel value)
         {
-            if (value == AddNewSentinel)
+            if (value == AddNewHypervisorSentinel)
             {
                 AddHypervisorCommand.Execute(null);
                 OnPropertyChanged(nameof(HypervisorType));
@@ -125,19 +172,31 @@ namespace VMUpdater.ViewModels
         partial void OnHypervisorTypeChanged(HypervisorModel value)
         {
             // Ignore sentinel if it somehow slips through
-            if (value == AddNewSentinel || value == null)
+            if (value == AddNewHypervisorSentinel || value == null)
                 return;
 
-            Model.Hypervisor = value;
+            Model.HypervisorId = value.Id;
             _ = SaveAsync();
         }
 
         [ObservableProperty]
-        public partial string GuestOSType { get; set; } = string.Empty;
-
-        partial void OnGuestOSTypeChanged(string value)
+        public partial GuestOSModel GuestOSType { get; set; }
+        partial void OnGuestOSTypeChanging(GuestOSModel value)
         {
-            Model.GuestOSType = value;
+            if (value == AddNewGuestOSSentinel)
+            {
+                AddGuestOSCommand.Execute(null);
+                OnPropertyChanged(nameof(GuestOSType));
+            }
+        }
+
+        partial void OnGuestOSTypeChanged(GuestOSModel value)
+        {
+            // Ignore sentinel if it somehow slips through
+            if (value == AddNewGuestOSSentinel || value == null)
+                return;
+
+            Model.GuestOSId = value.Id;
             _ = SaveAsync();
         }
 
@@ -265,6 +324,8 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        private readonly HypervisorModel AddNewSentinel = new() { Name = "+ Add New Hypervisor..." };
+        private readonly HypervisorModel AddNewHypervisorSentinel = new() { Name = "+ Add New Hypervisor..." };
+
+        private readonly GuestOSModel AddNewGuestOSSentinel = new() { Name = "+ Add New Guest OS..." };
     }
 }

@@ -46,7 +46,7 @@
             <TextBlock.Text>
                 <MultiBinding StringFormat="{}{0} ({1})">
                     <Binding Path="DisplayName" UpdateSourceTrigger="PropertyChanged"/>
-                    <Binding Path="GuestOSType" UpdateSourceTrigger="PropertyChanged"/>
+                    <Binding Path="GuestOSType.Name" UpdateSourceTrigger="PropertyChanged"/>
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
@@ -103,20 +103,26 @@
                               ItemsSource="{Binding Hypervisors}" 
                               SelectedItem="{Binding HypervisorType, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="Name"/>
+                    
                     <TextBlock Text="Guest OS:" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="VMTypeComboBox"
+                    <ComboBox x:Name="GuestOSComboBox"
                               Grid.Column="3"
                               Margin="0,4"
                               ItemsSource="{Binding GuestOSTypes}"
-                              SelectedItem="{Binding GuestOSType, UpdateSourceTrigger=PropertyChanged}"/>
+                              SelectedItem="{Binding GuestOSType, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Name"/>
+                    
                     <TextBlock Text="Username:" Grid.Row="1" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Margin="0,4" VerticalAlignment="Center" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                    
                     <TextBlock Text="Password:" Grid.Row="1" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
                     <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="3" Margin="0,4" VerticalAlignment="Center" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
+                    
                     <TextBlock Text="Every" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="ScheduleComboBox" 
                               Grid.Column="1" 
                               Grid.Row="2"
+                              Margin="0,4"
                               SelectedValue="{Binding ScheduleDay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValuePath="Content">
                         <ComboBoxItem Content="Monday" />
@@ -128,7 +134,7 @@
                         <ComboBoxItem Content="Sunday" />
                     </ComboBox>
                     <TextBlock Text="at" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
-                    <local:TimePicker Grid.Column="3" Grid.Row="2" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime, UpdateSourceTrigger=PropertyChanged}"/>
+                    <local:TimePicker Grid.Column="3" Grid.Row="2" Margin="0,4" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
 
                 <Grid Margin="0,2">

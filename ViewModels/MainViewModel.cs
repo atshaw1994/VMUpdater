@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Data;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
+using VMUpdater.Services.Orchestration;
 using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
@@ -21,20 +22,24 @@ namespace VMUpdater.ViewModels
         private readonly IVirtualMachineService _vmService;
         private readonly IVirtualMachineRepository _vmRepository;
         private readonly IHypervisorRepository _hypervisorRepository;
+        private readonly IGuestOSRepository _guestOSRepository;
         private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
 
         public Action<string>? OnTooltipRefreshRequested { get; set; }
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
         public ObservableCollection<HypervisorModel> Hypervisors { get; }
+        public ObservableCollection<GuestOSModel> GuestOSTypes { get; }
 
         // Primary Dependency Injection Constructor
-        public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository, IHypervisorRepository hypervisorRepository)
+        public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository, IHypervisorRepository hypervisorRepository, IGuestOSRepository guestOSRepository)
         {
             _vmService = vmService;
             _vmRepository = repository;
             _hypervisorRepository = hypervisorRepository;
+            _guestOSRepository = guestOSRepository;
             VirtualMachines = [];
             Hypervisors = [];
+            GuestOSTypes = [];
 
             BindingOperations.EnableCollectionSynchronization(VirtualMachines, new object());
 
@@ -45,8 +50,8 @@ namespace VMUpdater.ViewModels
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             _logFilePath = Path.Combine(logFolder, $"{timestamp}.log");
 
-            _ = InitializeApplicationProfilesAsync();
-            _ = InitializeHypervisorsProfilesAsync();
+            _ = InitializeAsync();
+
             LogMessage("Logging profile initialized.");
         }
 
@@ -224,24 +229,22 @@ namespace VMUpdater.ViewModels
                 int newMachinesCount = 0;
                 foreach (var vmModel in importedMachines)
                 {
+                    var hypervisor = await _hypervisorRepository.GetByIdAsync(vmModel.HypervisorId);
+                    var guestOS = await _guestOSRepository.GetByIdAsync(vmModel.GuestOSId);
+
+                    if (hypervisor == null) throw new Exception("Hypervisor not found");
+                    if (guestOS == null) throw new Exception("Guest OS not found");
+
                     if (!VirtualMachines.Any(vm => vm.Model.Id == vmModel.Id))
                     {
-                        // Re-link the VM's Hypervisor reference to the instance active in memory
-                        if (vmModel.Hypervisor != null)
-                        {
-                            var existingHv = Hypervisors.FirstOrDefault(h => h.Id == vmModel.Hypervisor.Id);
-                            if (existingHv != null)
-                            {
-                                vmModel.Hypervisor = existingHv;
-                            }
-                        }
-
                         var vmViewModel = new VirtualMachineViewModel(
                             vmModel,
                             _vmService,
                             _vmRepository,
                             _hypervisorRepository,
+                            _guestOSRepository,
                             Hypervisors,
+                            GuestOSTypes,
                             CollapseSiblings
                         );
 
@@ -312,7 +315,18 @@ namespace VMUpdater.ViewModels
                 ScheduleTime = DateTime.Now
             };
 
-            var newItemViewModel = new VirtualMachineViewModel(newModel, _vmService, _vmRepository, _hypervisorRepository, Hypervisors, CollapseSiblings) { IsExpanded = true };
+            var newItemViewModel = new VirtualMachineViewModel(
+                newModel, 
+                _vmService, 
+                _vmRepository, 
+                _hypervisorRepository,
+                _guestOSRepository,
+                Hypervisors,
+                GuestOSTypes,
+                CollapseSiblings) 
+            { 
+                IsExpanded = true 
+            };
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
@@ -339,54 +353,6 @@ namespace VMUpdater.ViewModels
                 EnqueueUpdateRequest(vm, forceUpdate: true);
         }
         private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
-
-        [RelayCommand]
-        private void BrowseForVMWareExecutable()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Executable Files (*.exe)|*.exe",
-                Title = "Select vmrun.exe",
-                InitialDirectory = @"C:\Program Files (x86)\VMware\VMware Workstation"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                VMWareExecutablePath = dialog.FileName;
-            }
-        }
-
-        [RelayCommand]
-        private void BrowseForVirtualBoxExecutable()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Executable Files (*.exe)|*.exe",
-                Title = "Select VBoxManage.exe",
-                InitialDirectory = @"C:\Program Files\Oracle\VirtualBox"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                VirtualBoxExecutablePath = dialog.FileName;
-            }
-        }
-
-        [RelayCommand]
-        private void BrowseForQEMUExecutable()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Executable Files (*.exe)|*.exe",
-                Title = "Select qemu.exe",
-                InitialDirectory = @"C:\Program Files\QEMU"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                QEMUExecutablePath = dialog.FileName;
-            }
-        }
 
         [RelayCommand]
         private void ToggleFindRow() => IsFindRowVisible = !IsFindRowVisible;
@@ -556,16 +522,37 @@ namespace VMUpdater.ViewModels
             catch { /* Prevent filesystem context lock crashes */ }
         }
 
+        private async Task InitializeAsync()
+        {
+            await InitializeHypervisorsProfilesAsync();
+            await InitializeGuestOSTypesAsync();
+            await InitializeApplicationProfilesAsync();
+        }
+
         public async Task InitializeApplicationProfilesAsync()
         {
             var models = await _vmRepository.LoadAllAsync();
 
             foreach (var model in models)
             {
-                var vmViewModel = new VirtualMachineViewModel(model, _vmService, _vmRepository, _hypervisorRepository, Hypervisors, CollapseSiblings)
+                var hypervisor = await _hypervisorRepository.GetByIdAsync(model.HypervisorId);
+                var guestOS = await _guestOSRepository.GetByIdAsync(model.GuestOSId);
+                hypervisor ??= new HypervisorModel();
+                guestOS ??= DefaultGuestOSTypes.Windows;
+
+                var vmViewModel = new VirtualMachineViewModel(
+                    model, 
+                    _vmService, 
+                    _vmRepository, 
+                    _hypervisorRepository, 
+                    _guestOSRepository, 
+                    Hypervisors, 
+                    GuestOSTypes, 
+                    CollapseSiblings)
                 {
                     DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine",
-                    HypervisorType = model.Hypervisor
+                    HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor,
+                    GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS
                 };
 
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
@@ -599,5 +586,17 @@ namespace VMUpdater.ViewModels
             });
         }
 
+        private async Task InitializeGuestOSTypesAsync()
+        {
+            var guestOSTypes = await _guestOSRepository.LoadAllAsync();
+
+            // Ensure collection updates are on the UI thread
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                GuestOSTypes.Clear();
+                foreach (var guestOS in guestOSTypes)
+                    GuestOSTypes.Add(guestOS);
+            });
+        }
     }
 }

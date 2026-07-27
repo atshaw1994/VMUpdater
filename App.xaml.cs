@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using VMUpdater.Services;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Hypervisors;
+using VMUpdater.Services.Orchestration;
 using VMUpdater.ViewModels;
 using VMUpdater.Views;
 
@@ -64,11 +65,10 @@ namespace VMUpdater
             services.AddSingleton<ISettingsProvider, AppSettingsProvider>();
             services.AddSingleton<IVirtualMachineRepository, JsonVirtualMachineRepository>();
             services.AddSingleton<IHypervisorRepository, JsonHypervisorRepository>();
+            services.AddSingleton<IGuestOSRepository, JsonGuestOSRepository>();
 
-            // Register Hypervisor Updaters
-            services.AddTransient<IHypervisorUpdater, VMWareUpdater>();
-            services.AddTransient<IHypervisorUpdater, VirtualBoxUpdater>();
-            services.AddTransient<IHypervisorUpdater, QemuUpdater>();
+            // Register Generic Hypervisor Orchestrator
+            services.AddSingleton<GenericHypervisorUpdater>();
 
             // Main Orchestration Service
             services.AddTransient<IVirtualMachineService, VirtualMachineService>();

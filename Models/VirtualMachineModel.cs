@@ -19,8 +19,8 @@ namespace VMUpdater.Models
     public class VirtualMachineModel
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public HypervisorModel Hypervisor { get; set; } = new HypervisorModel() { Name = "VMWare", ExecutablePath = string.Empty };
-        public string GuestOSType { get; set; } = "Windows";
+        public Guid HypervisorId { get; set; }
+        public Guid GuestOSId { get; set; }
         public string VMPath { get; set; } = string.Empty;
         public string Username { get; set; } = "username";
         public string Password { get; set; } = "password";

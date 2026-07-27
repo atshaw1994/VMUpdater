@@ -3,19 +3,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services
 {
-    public class JsonHypervisorRepository : IHypervisorRepository
+    public class JsonGuestOSRepository : IGuestOSRepository
     {
         private readonly string _storageFolder;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public JsonHypervisorRepository()
+        public JsonGuestOSRepository()
         {
             _storageFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "VMUpdater\\Hypervisors\\"
+                "VMUpdater\\GuestOS\\"
             );
             Directory.CreateDirectory(_storageFolder);
 
@@ -27,20 +28,20 @@ namespace VMUpdater.Services
             };
         }
 
-        public async Task SaveAsync(HypervisorModel hypervisor)
+        public async Task SaveAsync(GuestOSModel guestOS)
         {
-            ArgumentNullException.ThrowIfNull(hypervisor);
+            ArgumentNullException.ThrowIfNull(guestOS);
 
-            string filePath = Path.Combine(_storageFolder, $"{hypervisor.Id:N}.json");
+            string filePath = Path.Combine(_storageFolder, $"{guestOS.Id:N}.json");
             using FileStream stream = File.Create(filePath);
-            await JsonSerializer.SerializeAsync(stream, hypervisor, _jsonOptions).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, guestOS, _jsonOptions).ConfigureAwait(false);
         }
 
-        public Task DeleteAsync(HypervisorModel hypervisor)
+        public Task DeleteAsync(GuestOSModel guestOS)
         {
-            ArgumentNullException.ThrowIfNull(hypervisor);
+            ArgumentNullException.ThrowIfNull(guestOS);
 
-            string filePath = Path.Combine(_storageFolder, $"{hypervisor.Id:N}.json");
+            string filePath = Path.Combine(_storageFolder, $"{guestOS.Id:N}.json");
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
@@ -49,19 +50,19 @@ namespace VMUpdater.Services
             return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<HypervisorModel>> LoadAllAsync()
+        public async Task<IEnumerable<GuestOSModel>> LoadAllAsync()
         {
-            var hypervisors = new List<HypervisorModel>();
-            if (!Directory.Exists(_storageFolder)) return hypervisors;
+            var guestOSList = new List<GuestOSModel>();
+            if (!Directory.Exists(_storageFolder)) return guestOSList;
 
             foreach (string filePath in Directory.GetFiles(_storageFolder, "*.json"))
             {
                 try
                 {
                     using FileStream stream = File.OpenRead(filePath);
-                    var hypervisor = await JsonSerializer.DeserializeAsync<HypervisorModel>(stream, _jsonOptions).ConfigureAwait(false);
-                    if (hypervisor != null)
-                        hypervisors.Add(hypervisor);
+                    var guestOS = await JsonSerializer.DeserializeAsync<GuestOSModel>(stream, _jsonOptions).ConfigureAwait(false);
+                    if (guestOS != null)
+                        guestOSList.Add(guestOS);
                 }
                 catch (Exception ex)
                 {
@@ -69,19 +70,24 @@ namespace VMUpdater.Services
                 }
             }
 
-            return hypervisors;
+            return guestOSList;
         }
 
-        public async Task<HypervisorModel?> GetByIdAsync(Guid hypervisorId)
+        public async Task<GuestOSModel?> GetByIdAsync(Guid guestOSId)
         {
-            string filePath = Path.Combine(_storageFolder, $"{hypervisorId:N}.json");
-            if (!File.Exists(filePath)) return null;
+            string filePath = Path.Combine(_storageFolder, $"{guestOSId:N}.json");
+            if (!File.Exists(filePath))
+            {
+                if (DefaultGuestOSTypes.IsDefaultGuestOS(guestOSId))
+                    return DefaultGuestOSTypes.GetModelById(guestOSId);
+                return null;
+            }
 
             try
             {
                 using FileStream stream = File.OpenRead(filePath);
-                var hypervisor = await JsonSerializer.DeserializeAsync<HypervisorModel>(stream, _jsonOptions).ConfigureAwait(false);
-                return hypervisor!;
+                var guestOS = await JsonSerializer.DeserializeAsync<GuestOSModel>(stream, _jsonOptions).ConfigureAwait(false);
+                return guestOS!;
             }
             catch (Exception ex)
             {

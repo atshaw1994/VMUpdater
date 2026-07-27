@@ -7,5 +7,6 @@ namespace VMUpdater.Services.Abstractions
         Task SaveAsync(HypervisorModel hypervisor);
         Task DeleteAsync(HypervisorModel hypervisor);
         Task<IEnumerable<HypervisorModel>> LoadAllAsync();
+        Task<HypervisorModel?> GetByIdAsync(Guid hypervisorId);
     }
 }

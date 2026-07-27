@@ -1,14 +1,11 @@
 ﻿using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services
 {
-    public class VirtualMachineService(IEnumerable<IHypervisorUpdater> updaters) : IVirtualMachineService
+    public class VirtualMachineService(GenericHypervisorUpdater updater, IHypervisorRepository hypervisorRepository, IGuestOSRepository guestOSRepository) : IVirtualMachineService
     {
-        /// <summary>
-        /// A dictionary mapping hypervisor types to their corresponding updaters.
-        /// </summary>
-        private readonly Dictionary<HypervisorModel, IHypervisorUpdater> _updaters = updaters.ToDictionary(u => u.Hypervisor, u => u);
 
         /// <summary>
         /// Starts the update process for a given virtual machine.
@@ -25,13 +22,16 @@ namespace VMUpdater.Services
         {
             if (vmData == null) return;
 
-            if (!_updaters.TryGetValue(vmData.Hypervisor, out var updater))
-                throw new NotSupportedException($"Hypervisor {vmData.Hypervisor} not supported.");
+            HypervisorModel? hypervisor = await hypervisorRepository.GetByIdAsync(vmData.HypervisorId);
+            if (hypervisor == null) return;
+
+            GuestOSModel? guestOS = await guestOSRepository.GetByIdAsync(vmData.GuestOSId);
+            if (guestOS == null) return;
 
             bool success = false;
             try
             {
-                success = await updater.UpdateVMAsync(vmData, progressCallback, runProcessExecutor);
+                success = await updater.UpdateVMAsync(hypervisor, guestOS, vmData, hypervisor.RunScriptArgumentTemplate, progressCallback, runProcessExecutor);
             }
             finally
             {
