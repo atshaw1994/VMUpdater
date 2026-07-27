@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
@@ -20,7 +21,8 @@ namespace VMUpdater.Services.Orchestration
             // 1. Boot VM
             reportProgress(new UpdateProgressReport
             {
-                ProgressDelta = 20,
+                ProgressDelta = 10,
+                LogText = $"Starting VM '{vmIdentifier}' via {hypervisor.Name}...",
                 StatusText = $"Starting VM via {hypervisor.Name}..."
             });
 
@@ -28,6 +30,17 @@ namespace VMUpdater.Services.Orchestration
 
             int startCode = await runProcessAsync(vmIdentifier, hypervisor.ExecutablePath, startArgs);
             if (startCode != 0) return false;
+
+            reportProgress(new UpdateProgressReport
+            {
+                ProgressDelta = 10,
+                LogText = $"Waiting for VM '{vmIdentifier}' to boot...",
+                StatusText = $"Waiting for VM '{vmIdentifier}' to boot..."
+            });
+
+            // 1.5 Wait for VM to boot
+            await Task.Delay(30000); // Simple delay, can be replaced with a more robust check
+
 
             // 2. Network / Readiness Check
             if (!string.IsNullOrWhiteSpace(guestOS.NetworkCheckArgumentTemplate))

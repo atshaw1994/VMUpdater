@@ -26,12 +26,16 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Menu -->
         <Menu>
             <MenuItem Header="File" Width="64">
                 <MenuItem Header="Add New Machine" Width="256" Command="{Binding AddVirtualMachineCommand}"/>
                 <MenuItem Header="Add New Hypervisor" Width="256" Command="{Binding AddHypervisorCommand}"/>
+                <MenuItem Header="Add New Guest OS Type" Width="256" Command="{Binding AddGuestOSCommand}"/>
                 <MenuItem Header="Import" Width="256" Command="{Binding ImportCommand}"/>
                 <MenuItem Header="Export" Width="256" Command="{Binding ExportCommand}"/>
+                <Separator/>
+                <MenuItem Header="Show Log" Width="256" Command="{Binding ShowLogCommand}"/>
                 <Separator/>
                 <MenuItem Header="About" Width="256" Command="{Binding AboutCommand}"/>
                 <MenuItem Header="Exit" Width="256" Command="{Binding ExitCommand}"/>
@@ -45,6 +49,7 @@
             </MenuItem>
         </Menu>
 
+        <!-- Find Row -->
         <Grid Grid.Row="1" Height="0" ClipToBounds="True" d:Height="40">
             <Grid.Style>
                 <Style TargetType="Grid">
@@ -92,6 +97,7 @@
             <Button Grid.Column="2" Content="&#xe711;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}"/>
         </Grid>
 
+        <!-- Virtual Machines -->
         <Border Grid.Row="2" Background="{DynamicResource SmokeFillColorDefaultBrush}">
             <!-- Scrollable container for virtual machines + action button -->
             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -103,6 +109,41 @@
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
             </ScrollViewer>
+        </Border>
+
+        <!-- Log Text -->
+        <Border Grid.Row="2" 
+                Background="Black"
+                d:Visibility="Collapsed"
+                Visibility="{Binding IsLogVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Button Height="30" 
+                        HorizontalAlignment="Stretch" 
+                        HorizontalContentAlignment="Right"
+                        Command="{Binding ToggleLogCommand}">
+                    <TextBlock Text="&#xE70D;"
+                               FontFamily="Segoe Fluent Icons" 
+                               d:Foreground="Black"
+                               Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}" 
+                               HorizontalAlignment="Right" 
+                               VerticalAlignment="Center"/>
+                </Button>
+
+                <TextBlock Text="Log" 
+                           IsHitTestVisible="False" 
+                           FontSize="16" 
+                           VerticalAlignment="Center" 
+                           Margin="8,0"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding LogText}" VerticalScrollBarVisibility="Auto" Loaded="LogTextBox_Loaded" TextChanged="LogTextBox_TextChanged"/>
+                </ScrollViewer>
+            </Grid>
         </Border>
 
         <!-- Status Bar -->

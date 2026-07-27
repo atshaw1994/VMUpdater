@@ -56,6 +56,8 @@ namespace VMUpdater.ViewModels
         }
 
         #region Properties
+        [ObservableProperty]
+        public partial bool IsLogVisible { get; set; } = false;
 
         [ObservableProperty]
         public partial bool IsFindRowVisible { get; set; } = false;
@@ -279,13 +281,14 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
-        private static void ShowLog()
+        private void ShowLog()
         {
             if (Application.Current?.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
                 mainWindow.Activate();
+                IsLogVisible = true;
             }
         }
 
@@ -356,6 +359,9 @@ namespace VMUpdater.ViewModels
 
         [RelayCommand]
         private void ToggleFindRow() => IsFindRowVisible = !IsFindRowVisible;
+
+        [RelayCommand]
+        private void ToggleLog() => IsLogVisible = !IsLogVisible;
 
         #endregion
 
@@ -448,6 +454,7 @@ namespace VMUpdater.ViewModels
 
         private Task<int> RunProcessAsync(string vmIdentifier, string fileName, string arguments)
         {
+            Trace.WriteLine($"runProcessAsync({vmIdentifier}, {fileName}, {arguments})");
             var tcs = new TaskCompletionSource<int>();
 
             var startInfo = new ProcessStartInfo
