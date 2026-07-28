@@ -1,4 +1,5 @@
 ﻿using VMUpdater.Models;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services.Abstractions
 {
@@ -10,12 +11,5 @@ namespace VMUpdater.Services.Abstractions
             VirtualMachineModel vm,
             Action<UpdateProgressReport> reportProgress,
             Func<string, string, string, Task<int>> runProcessAsync);
-    }
-
-    public class UpdateProgressReport
-    {
-        public int ProgressDelta { get; set; }
-        public string? StatusText { get; set; }
-        public string? LogText { get; set; }
     }
 }

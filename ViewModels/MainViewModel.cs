@@ -16,6 +16,13 @@ using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
 {
+    public record MainServicesContext(
+        IVirtualMachineService VmService,
+        IVirtualMachineRepository VmRepository,
+        IHypervisorRepository HypervisorRepository,
+        IGuestOSRepository GuestOSRepository
+    );
+
     public partial class MainViewModel : ObservableObject
     {
         private readonly string _logFilePath;
@@ -31,12 +38,12 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; }
 
         // Primary Dependency Injection Constructor
-        public MainViewModel(IVirtualMachineService vmService, IVirtualMachineRepository repository, IHypervisorRepository hypervisorRepository, IGuestOSRepository guestOSRepository)
+        public MainViewModel(MainServicesContext services)
         {
-            _vmService = vmService;
-            _vmRepository = repository;
-            _hypervisorRepository = hypervisorRepository;
-            _guestOSRepository = guestOSRepository;
+            _vmService = services.VmService;
+            _vmRepository = services.VmRepository;
+            _hypervisorRepository = services.HypervisorRepository;
+            _guestOSRepository = services.GuestOSRepository;
             VirtualMachines = [];
             Hypervisors = [];
             GuestOSTypes = [];
@@ -239,8 +246,7 @@ namespace VMUpdater.ViewModels
 
                     if (!VirtualMachines.Any(vm => vm.Model.Id == vmModel.Id))
                     {
-                        var vmViewModel = new VirtualMachineViewModel(
-                            vmModel,
+                        var vmViewModelContext = new VMViewModelContext(
                             _vmService,
                             _vmRepository,
                             _hypervisorRepository,
@@ -249,6 +255,8 @@ namespace VMUpdater.ViewModels
                             GuestOSTypes,
                             CollapseSiblings
                         );
+
+                        var vmViewModel = new VirtualMachineViewModel(vmModel, vmViewModelContext);
 
                         vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
 
@@ -318,18 +326,18 @@ namespace VMUpdater.ViewModels
                 ScheduleTime = DateTime.Now
             };
 
-            var newItemViewModel = new VirtualMachineViewModel(
-                newModel, 
-                _vmService, 
-                _vmRepository, 
+            var vmViewModelContext = new VMViewModelContext(
+                _vmService,
+                _vmRepository,
                 _hypervisorRepository,
                 _guestOSRepository,
                 Hypervisors,
                 GuestOSTypes,
-                CollapseSiblings) 
-            { 
-                IsExpanded = true 
-            };
+                CollapseSiblings
+            );
+
+            var newItemViewModel = new VirtualMachineViewModel(newModel, vmViewModelContext) { IsExpanded = true };
+
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
@@ -547,15 +555,17 @@ namespace VMUpdater.ViewModels
                 hypervisor ??= new HypervisorModel();
                 guestOS ??= DefaultGuestOSTypes.Windows;
 
-                var vmViewModel = new VirtualMachineViewModel(
-                    model, 
-                    _vmService, 
-                    _vmRepository, 
-                    _hypervisorRepository, 
-                    _guestOSRepository, 
-                    Hypervisors, 
-                    GuestOSTypes, 
-                    CollapseSiblings)
+                var vmViewModelContext = new VMViewModelContext(
+                    _vmService,
+                    _vmRepository,
+                    _hypervisorRepository,
+                    _guestOSRepository,
+                    Hypervisors,
+                    GuestOSTypes,
+                    CollapseSiblings
+                );
+
+                var vmViewModel = new VirtualMachineViewModel(model, vmViewModelContext)
                 {
                     DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine",
                     HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor,

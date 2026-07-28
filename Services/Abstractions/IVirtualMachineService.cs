@@ -1,4 +1,5 @@
 ﻿using VMUpdater.Models;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services.Abstractions
 {

@@ -29,9 +29,11 @@
         <!-- Menu -->
         <Menu>
             <MenuItem Header="File" Width="64">
-                <MenuItem Header="Add New Machine" Width="256" Command="{Binding AddVirtualMachineCommand}"/>
-                <MenuItem Header="Add New Hypervisor" Width="256" Command="{Binding AddHypervisorCommand}"/>
-                <MenuItem Header="Add New Guest OS Type" Width="256" Command="{Binding AddGuestOSCommand}"/>
+                <MenuItem Header="Add New" Width="256">
+                    <MenuItem Header="Add New Machine" Width="256" Command="{Binding AddVirtualMachineCommand}"/>
+                    <MenuItem Header="Add New Hypervisor" Width="256" Command="{Binding AddHypervisorCommand}"/>
+                    <MenuItem Header="Add New Guest OS Type" Width="256" Command="{Binding AddGuestOSCommand}"/>
+                </MenuItem>
                 <MenuItem Header="Import" Width="256" Command="{Binding ImportCommand}"/>
                 <MenuItem Header="Export" Width="256" Command="{Binding ExportCommand}"/>
                 <Separator/>

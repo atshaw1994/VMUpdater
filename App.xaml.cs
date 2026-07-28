@@ -72,8 +72,11 @@ namespace VMUpdater
             // Main Orchestration Service
             services.AddTransient<IVirtualMachineService, VirtualMachineService>();
 
+            // Register Context Bundles for DI Resolution
+            services.AddSingleton<MainServicesContext>();
+
             // ViewModels
-            services.AddSingleton<MainViewModel>(); // Kept as Singleton so tray icon and window share state
+            services.AddSingleton<MainViewModel>();
 
             // Views
             services.AddTransient(provider => new MainWindow(
