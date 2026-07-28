@@ -19,6 +19,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -66,10 +67,25 @@ namespace VMUpdater.ViewModels
 
             _ = InitializeAsync();
 
+            FilteredVirtualMachines = CollectionViewSource.GetDefaultView(VirtualMachines);
+            FilteredVirtualMachines.Filter = FilterVirtualMachines;
+
+            // Optional: Keep UI sorted automatically by Name
+            FilteredVirtualMachines.SortDescriptions.Add(
+                new SortDescription(nameof(VirtualMachineViewModel.DisplayName), ListSortDirection.Ascending)
+            );
+
             LogMessage("Logging profile initialized.");
         }
 
         #region Properties
+
+        [ObservableProperty]
+        public partial string SearchText { get; set; } = string.Empty;
+        partial void OnSearchTextChanged(string value) => FilteredVirtualMachines?.Refresh();
+
+        public ICollectionView FilteredVirtualMachines { get; private set; }
+
         [ObservableProperty]
         public partial bool IsLogVisible { get; set; } = false;
 
@@ -351,7 +367,12 @@ namespace VMUpdater.ViewModels
         private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
 
         [RelayCommand]
-        private void ToggleFindRow() => IsFindRowVisible = !IsFindRowVisible;
+        private void ToggleFindRow()
+        {
+            IsFindRowVisible = !IsFindRowVisible;
+            if (!IsFindRowVisible)
+                SearchText = string.Empty;
+        }
 
         [RelayCommand]
         private void ToggleLog() => IsLogVisible = !IsLogVisible;
@@ -601,6 +622,18 @@ namespace VMUpdater.ViewModels
             );
 
             return new VirtualMachineViewModel(model, vmContext);
+        }
+
+        private bool FilterVirtualMachines(object item)
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+                return true;
+
+            if (item is not VirtualMachineViewModel vm)
+                return false;
+
+            // Case-insensitive check across multiple properties
+            return vm.DisplayName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true;
         }
     }
 }
