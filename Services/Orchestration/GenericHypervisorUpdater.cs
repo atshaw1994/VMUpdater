@@ -17,7 +17,6 @@
 using System.Diagnostics;
 using System.IO;
 using VMUpdater.Models;
-using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services.Orchestration
@@ -44,7 +43,7 @@ namespace VMUpdater.Services.Orchestration
             string vmIdentifier = Path.GetFileNameWithoutExtension(ctx.VM.VMPath);
 
             // 1. Boot VM
-            _ = await StartVMAndAwaitReadyAsync(ctx);
+            _ = await StartVMAndAwaitReadyAsync(ctx, vmIdentifier);
 
             // 2. Network / Readiness Check
             if (!string.IsNullOrWhiteSpace(ctx.GuestOS.NetworkCheckArgumentTemplate))
@@ -87,13 +86,13 @@ namespace VMUpdater.Services.Orchestration
             return scriptCode == 0;
         }
 
-        private static async Task<bool> StartVMAndAwaitReadyAsync(VMUpdateContext ctx)
+        private static async Task<bool> StartVMAndAwaitReadyAsync(VMUpdateContext ctx, string vmIdentifier)
         {
             // 1. Boot VM
             ctx.ReportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 10,
-                LogText = $"Starting VM '{ctx.VM.VMPath}' via {ctx.Hypervisor.Name}...",
+                LogText = $"Starting VM '{vmIdentifier}' via {ctx.Hypervisor.Name}...",
                 StatusText = $"Starting VM via {ctx.Hypervisor.Name}..."
             });
 
@@ -105,8 +104,8 @@ namespace VMUpdater.Services.Orchestration
             ctx.ReportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 10,
-                LogText = $"Waiting for VM '{ctx.VM.VMPath}' to boot...",
-                StatusText = $"Waiting for VM '{ctx.VM.VMPath}' to boot..."
+                LogText = $"Waiting for VM '{vmIdentifier}' to boot...",
+                StatusText = $"Waiting for VM '{vmIdentifier}' to boot..."
             });
 
             // 1.5 Wait for VM to boot/reach ready state
@@ -116,7 +115,7 @@ namespace VMUpdater.Services.Orchestration
             {
                 ctx.ReportProgress(new UpdateProgressReport
                 {
-                    LogText = $"Error: VM '{ctx.VM.VMPath}' failed to reach desktop within timeout."
+                    LogText = $"Error: VM '{vmIdentifier}' failed to reach desktop within timeout."
                 });
                 return false;
             }

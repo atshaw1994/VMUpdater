@@ -1,4 +1,20 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// VMUpdater - Automated headless VM update scheduler
+// Copyright (C) 2025  Aaron Shaw
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
@@ -25,28 +41,19 @@ namespace VMUpdater.ViewModels
 
     public partial class MainViewModel : ObservableObject
     {
+        private readonly MainServicesContext _services;
         private readonly string _logFilePath;
-        private readonly IVirtualMachineService _vmService;
-        private readonly IVirtualMachineRepository _vmRepository;
-        private readonly IHypervisorRepository _hypervisorRepository;
-        private readonly IGuestOSRepository _guestOSRepository;
         private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
 
-        public Action<string>? OnTooltipRefreshRequested { get; set; }
-        public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; }
-        public ObservableCollection<HypervisorModel> Hypervisors { get; }
-        public ObservableCollection<GuestOSModel> GuestOSTypes { get; }
+        public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; } = [];
+        public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
+        public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
+        public event Action<string>? OnTooltipRefreshRequested;
 
         // Primary Dependency Injection Constructor
         public MainViewModel(MainServicesContext services)
         {
-            _vmService = services.VmService;
-            _vmRepository = services.VmRepository;
-            _hypervisorRepository = services.HypervisorRepository;
-            _guestOSRepository = services.GuestOSRepository;
-            VirtualMachines = [];
-            Hypervisors = [];
-            GuestOSTypes = [];
+            _services = services ?? throw new ArgumentNullException(nameof(services));
 
             BindingOperations.EnableCollectionSynchronization(VirtualMachines, new object());
 
@@ -230,7 +237,7 @@ namespace VMUpdater.ViewModels
                     {
                         Hypervisors.Add(hvModel);
                         newHypervisorsCount++;
-                        await _hypervisorRepository.SaveAsync(hvModel);
+                        await _services.HypervisorRepository.SaveAsync(hvModel);
                     }
                 }
 
@@ -238,8 +245,8 @@ namespace VMUpdater.ViewModels
                 int newMachinesCount = 0;
                 foreach (var vmModel in importedMachines)
                 {
-                    var hypervisor = await _hypervisorRepository.GetByIdAsync(vmModel.HypervisorId);
-                    var guestOS = await _guestOSRepository.GetByIdAsync(vmModel.GuestOSId);
+                    var hypervisor = await _services.HypervisorRepository.GetByIdAsync(vmModel.HypervisorId);
+                    var guestOS = await _services.GuestOSRepository.GetByIdAsync(vmModel.GuestOSId);
 
                     if (hypervisor == null) throw new Exception("Hypervisor not found");
                     if (guestOS == null) throw new Exception("Guest OS not found");
@@ -247,10 +254,10 @@ namespace VMUpdater.ViewModels
                     if (!VirtualMachines.Any(vm => vm.Model.Id == vmModel.Id))
                     {
                         var vmViewModelContext = new VMViewModelContext(
-                            _vmService,
-                            _vmRepository,
-                            _hypervisorRepository,
-                            _guestOSRepository,
+                            _services.VmService,
+                            _services.VmRepository,
+                            _services.HypervisorRepository,
+                            _services.GuestOSRepository,
                             Hypervisors,
                             GuestOSTypes,
                             CollapseSiblings
@@ -262,7 +269,7 @@ namespace VMUpdater.ViewModels
 
                         VirtualMachines.Add(vmViewModel);
                         newMachinesCount++;
-                        await _vmRepository.SaveAsync(vmModel);
+                        await _services.VmRepository.SaveAsync(vmModel);
                     }
                 }
 
@@ -310,7 +317,7 @@ namespace VMUpdater.ViewModels
                 HypervisorModel newHypervisor = vm.CreatedHypervisor;
 
                 // Save to repository
-                await _hypervisorRepository.SaveAsync(newHypervisor);
+                await _services.HypervisorRepository.SaveAsync(newHypervisor);
             }
         }
 
@@ -327,10 +334,10 @@ namespace VMUpdater.ViewModels
             };
 
             var vmViewModelContext = new VMViewModelContext(
-                _vmService,
-                _vmRepository,
-                _hypervisorRepository,
-                _guestOSRepository,
+                _services.VmService,
+                _services.VmRepository,
+                _services.HypervisorRepository,
+                _services.GuestOSRepository,
                 Hypervisors,
                 GuestOSTypes,
                 CollapseSiblings
@@ -350,7 +357,7 @@ namespace VMUpdater.ViewModels
             if (itemToRemove != null)
             {
                 VirtualMachines.Remove(itemToRemove);
-                await _vmRepository.DeleteAsync(itemToRemove.Model);
+                await _services.VmRepository.DeleteAsync(itemToRemove.Model);
             }
 
             UpdateAllCommand.NotifyCanExecuteChanged();
@@ -419,7 +426,7 @@ namespace VMUpdater.ViewModels
 
             try
             {
-                await _vmService.StartUpdateAsync(
+                await _services.VmService.StartUpdateAsync(
                     vm.Model,
                     report => Application.Current.Dispatcher.InvokeAsync(() =>
                     {
@@ -453,7 +460,7 @@ namespace VMUpdater.ViewModels
                 vm.UpdateProgress = UpdateProgress;
                 StatusMessage = "Ready.";
                 vm.LastUpdate = DateTime.Now;
-                await _vmRepository.SaveAsync(vm.Model);
+                await _services.VmRepository.SaveAsync(vm.Model);
                 if (!forceUpdate) vm.CalculateNextScheduledUpdate();
 
                 _ = ProcessNextInQueueAsync();
@@ -546,20 +553,20 @@ namespace VMUpdater.ViewModels
 
         public async Task InitializeApplicationProfilesAsync()
         {
-            var models = await _vmRepository.LoadAllAsync();
+            var models = await _services.VmRepository.LoadAllAsync();
 
             foreach (var model in models)
             {
-                var hypervisor = await _hypervisorRepository.GetByIdAsync(model.HypervisorId);
-                var guestOS = await _guestOSRepository.GetByIdAsync(model.GuestOSId);
+                var hypervisor = await _services.HypervisorRepository.GetByIdAsync(model.HypervisorId);
+                var guestOS = await _services.GuestOSRepository.GetByIdAsync(model.GuestOSId);
                 hypervisor ??= new HypervisorModel();
                 guestOS ??= DefaultGuestOSTypes.Windows;
 
                 var vmViewModelContext = new VMViewModelContext(
-                    _vmService,
-                    _vmRepository,
-                    _hypervisorRepository,
-                    _guestOSRepository,
+                    _services.VmService,
+                    _services.VmRepository,
+                    _services.HypervisorRepository,
+                    _services.GuestOSRepository,
                     Hypervisors,
                     GuestOSTypes,
                     CollapseSiblings
@@ -592,7 +599,7 @@ namespace VMUpdater.ViewModels
 
         private async Task InitializeHypervisorsProfilesAsync()
         {
-            var hypervisors = await _hypervisorRepository.LoadAllAsync();
+            var hypervisors = await _services.HypervisorRepository.LoadAllAsync();
 
             // Ensure collection updates are on the UI thread
             Application.Current?.Dispatcher.Invoke(() =>
@@ -605,7 +612,7 @@ namespace VMUpdater.ViewModels
 
         private async Task InitializeGuestOSTypesAsync()
         {
-            var guestOSTypes = await _guestOSRepository.LoadAllAsync();
+            var guestOSTypes = await _services.GuestOSRepository.LoadAllAsync();
 
             // Ensure collection updates are on the UI thread
             Application.Current?.Dispatcher.Invoke(() =>
