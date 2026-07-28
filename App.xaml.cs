@@ -48,7 +48,7 @@ namespace VMUpdater
             {
                 _notifyIcon.ToolTipText = _viewModel.TrayToolTipText;
 
-                _viewModel.OnTooltipRefreshRequested = (newTooltip) =>
+                _viewModel.OnTooltipRefreshRequested += (newTooltip) =>
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {

@@ -253,20 +253,8 @@ namespace VMUpdater.ViewModels
 
                     if (!VirtualMachines.Any(vm => vm.Model.Id == vmModel.Id))
                     {
-                        var vmViewModelContext = new VMViewModelContext(
-                            _services.VmService,
-                            _services.VmRepository,
-                            _services.HypervisorRepository,
-                            _services.GuestOSRepository,
-                            Hypervisors,
-                            GuestOSTypes,
-                            CollapseSiblings
-                        );
-
-                        var vmViewModel = new VirtualMachineViewModel(vmModel, vmViewModelContext);
-
+                        var vmViewModel = CreateVMViewModel(vmModel);
                         vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
-
                         VirtualMachines.Add(vmViewModel);
                         newMachinesCount++;
                         await _services.VmRepository.SaveAsync(vmModel);
@@ -333,18 +321,8 @@ namespace VMUpdater.ViewModels
                 ScheduleTime = DateTime.Now
             };
 
-            var vmViewModelContext = new VMViewModelContext(
-                _services.VmService,
-                _services.VmRepository,
-                _services.HypervisorRepository,
-                _services.GuestOSRepository,
-                Hypervisors,
-                GuestOSTypes,
-                CollapseSiblings
-            );
-
-            var newItemViewModel = new VirtualMachineViewModel(newModel, vmViewModelContext) { IsExpanded = true };
-
+            var newItemViewModel = CreateVMViewModel(newModel);
+            newItemViewModel.IsExpanded = true;
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
             VirtualMachines.Add(newItemViewModel);
 
@@ -562,23 +540,10 @@ namespace VMUpdater.ViewModels
                 hypervisor ??= new HypervisorModel();
                 guestOS ??= DefaultGuestOSTypes.Windows;
 
-                var vmViewModelContext = new VMViewModelContext(
-                    _services.VmService,
-                    _services.VmRepository,
-                    _services.HypervisorRepository,
-                    _services.GuestOSRepository,
-                    Hypervisors,
-                    GuestOSTypes,
-                    CollapseSiblings
-                );
-
-                var vmViewModel = new VirtualMachineViewModel(model, vmViewModelContext)
-                {
-                    DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine",
-                    HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor,
-                    GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS
-                };
-
+                VirtualMachineViewModel vmViewModel = CreateVMViewModel(model);
+                vmViewModel.DisplayName = !string.IsNullOrEmpty(model.VMPath) ? Path.GetFileNameWithoutExtension(model.VMPath) : "New Virtual Machine";
+                vmViewModel.HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
+                vmViewModel.GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
                 vmViewModel.CalculateNextScheduledUpdate();
 
@@ -621,6 +586,21 @@ namespace VMUpdater.ViewModels
                 foreach (var guestOS in guestOSTypes)
                     GuestOSTypes.Add(guestOS);
             });
+        }
+
+        private VirtualMachineViewModel CreateVMViewModel(VirtualMachineModel model)
+        {
+            var vmContext = new VMViewModelContext(
+                _services.VmService,
+                _services.VmRepository,
+                _services.HypervisorRepository,
+                _services.GuestOSRepository,
+                Hypervisors,
+                GuestOSTypes,
+                CollapseSiblings
+            );
+
+            return new VirtualMachineViewModel(model, vmContext);
         }
     }
 }
