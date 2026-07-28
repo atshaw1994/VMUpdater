@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 
@@ -18,7 +15,7 @@ namespace VMUpdater.Services
         {
             _storageFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "VMUpdater"
+                "VMUpdater\\VirtualMachines\\"
             );
             Directory.CreateDirectory(_storageFolder);
 

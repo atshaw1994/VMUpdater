@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using VMUpdater.Services;
 using VMUpdater.Services.Abstractions;
-using VMUpdater.Services.Hypervisors;
+using VMUpdater.Services.Orchestration;
 using VMUpdater.ViewModels;
 using VMUpdater.Views;
 
@@ -48,7 +48,7 @@ namespace VMUpdater
             {
                 _notifyIcon.ToolTipText = _viewModel.TrayToolTipText;
 
-                _viewModel.OnTooltipRefreshRequested = (newTooltip) =>
+                _viewModel.OnTooltipRefreshRequested += (newTooltip) =>
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
@@ -63,20 +63,23 @@ namespace VMUpdater
             // Core Application Services & Infrastructure
             services.AddSingleton<ISettingsProvider, AppSettingsProvider>();
             services.AddSingleton<IVirtualMachineRepository, JsonVirtualMachineRepository>();
+            services.AddSingleton<IHypervisorRepository, JsonHypervisorRepository>();
+            services.AddSingleton<IGuestOSRepository, JsonGuestOSRepository>();
 
-            // Register Hypervisor Updaters
-            services.AddTransient<IHypervisorUpdater, VMWareUpdater>();
-            services.AddTransient<IHypervisorUpdater, VirtualBoxUpdater>();
-            services.AddTransient<IHypervisorUpdater, QemuUpdater>();
+            // Register Generic Hypervisor Orchestrator
+            services.AddSingleton<GenericHypervisorUpdater>();
 
             // Main Orchestration Service
             services.AddTransient<IVirtualMachineService, VirtualMachineService>();
 
+            // Register Context Bundles for DI Resolution
+            services.AddSingleton<MainServicesContext>();
+
             // ViewModels
-            services.AddSingleton<MainViewModel>(); // Kept as Singleton so tray icon and window share state
+            services.AddSingleton<MainViewModel>();
 
             // Views
-            services.AddTransient<MainWindow>(provider => new MainWindow(
+            services.AddTransient(provider => new MainWindow(
                 provider.GetRequiredService<MainViewModel>()
             ));
         }

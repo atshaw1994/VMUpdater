@@ -1,0 +1,75 @@
+﻿<Window x:Class="VMUpdater.Views.AddGuestOSView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
+        x:Name="AddWindow"
+        mc:Ignorable="d"
+        Title="Add Guest OS" 
+        SizeToContent="Height"
+        Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+
+    <Window.DataContext>
+        <viewmodels:AddGuestOSViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Add New Guest OS" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            <TextBlock Text="Configure launch arguments and executable path for the new guest OS profile." 
+                       Foreground="Gray" Margin="0,4,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Name -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Guest OS Name" VerticalAlignment="Center" Margin="0,6"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" Padding="4,3"/>
+
+                <!-- Network Check Argument Template -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Network Check Argument Template" VerticalAlignment="Center" Margin="0,6,8,6"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NetworkCheckArgumentTemplate, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="CLI arguments to check network connectivity inside the guest" Margin="0,4" Padding="4,3"/>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Bottom Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save" 
+                    Command="{Binding SaveCommand}" 
+                    CommandParameter="{Binding ElementName=AddWindow}"
+                    IsDefault="True"
+                    Width="80" Height="28" Margin="0,0,8,0"/>
+            <Button Content="Cancel" 
+                    Command="{Binding CancelCommand}" 
+                    CommandParameter="{Binding ElementName=AddWindow}"
+                    IsCancel="True"
+                    Width="80" Height="28"/>
+        </StackPanel>
+    </Grid>
+</Window>

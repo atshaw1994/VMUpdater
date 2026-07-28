@@ -1,43 +1,96 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// VMUpdater - Automated headless VM update scheduler
+// Copyright (C) 2025  Aaron Shaw
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.IO;
 using VMUpdater.Models;
+using VMUpdater.Views;
 using VMUpdater.Services.Abstractions;
+using System.Windows;
+using VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.ViewModels
 {
+    public record VMViewModelContext(
+        IVirtualMachineService VmService,
+        IVirtualMachineRepository Repository,
+        IHypervisorRepository HypervisorRepository,
+        IGuestOSRepository GuestOSRepository,
+        ObservableCollection<HypervisorModel> Hypervisors,
+        ObservableCollection<GuestOSModel> GuestOSTypes,
+        Action<VirtualMachineViewModel> OnExpanded
+    );
+
     public partial class VirtualMachineViewModel : ObservableObject
     {
-        private readonly Action<VirtualMachineViewModel> _onExpanded;
+        private readonly VMViewModelContext _ctx;
+
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
         public VirtualMachineModel Model { get; }
-        private readonly IVirtualMachineService _vmService;
-        private readonly IVirtualMachineRepository _repository;
-        public ObservableCollection<string> GuestOSTypes { get; }
 
-        public VirtualMachineViewModel(
-            VirtualMachineModel model,
-            IVirtualMachineService vmService,
-            IVirtualMachineRepository repository,
-            Action<VirtualMachineViewModel> onExpanded)
+        public ObservableCollection<GuestOSModel> GuestOSTypes => _ctx.GuestOSTypes;
+        public ObservableCollection<HypervisorModel> Hypervisors => _ctx.Hypervisors;
+
+        public VirtualMachineViewModel(VirtualMachineModel model, VMViewModelContext context)
         {
-            Model = model;
-            _vmService = vmService;
-            _repository = repository;
-            _onExpanded = onExpanded;
+            Model = model ?? throw new ArgumentNullException(nameof(model));
+            _ctx = context ?? throw new ArgumentNullException(nameof(context));
 
-            GuestOSTypes = [
-                "Ubuntu", "Debian Linux", "Arch Linux", "Fedora", "Red Hat", "openSUSE", "Alpine", "macOS", "Windows"
-            ];
+            // Ensure Sentinel Items exist
+            if (!Hypervisors.Any(h => h.Name == AddNewHypervisorSentinel.Name))
+                Hypervisors.Add(AddNewHypervisorSentinel);
 
-            HypervisorType = Model.Hypervisor;
-            GuestOSType = Model.GuestOSType;
-            DisplayName = "New Virtual Machine";
+            if (!GuestOSTypes.Any(os => os.Name == AddNewGuestOSSentinel.Name))
+            {
+                // Seed defaults if list is empty
+                if (GuestOSTypes.Count == 0)
+                {
+                    GuestOSTypes.Add(DefaultGuestOSTypes.Ubuntu);
+                    GuestOSTypes.Add(DefaultGuestOSTypes.Arch);
+                    GuestOSTypes.Add(DefaultGuestOSTypes.Windows);
+                }
+                GuestOSTypes.Add(AddNewGuestOSSentinel);
+            }
+
+            // Initialize bindable properties from model
+            DisplayName = !string.IsNullOrEmpty(Model.VMPath)
+                ? Path.GetFileNameWithoutExtension(Model.VMPath)
+                : "New Virtual Machine";
+
             Username = Model.Username;
             Password = Model.Password;
             ScheduleDay = Model.ScheduleDay;
             ScheduleTime = Model.ScheduleTime;
+
+            // Async non-blocking load for repository lookups
+            _ = InitializeSelectionAsync();
+        }
+
+        private async Task InitializeSelectionAsync()
+        {
+            var hypervisor = await _ctx.HypervisorRepository.GetByIdAsync(Model.HypervisorId)
+                             ?? new HypervisorModel();
+
+            var guestOS = await _ctx.GuestOSRepository.GetByIdAsync(Model.GuestOSId)
+                          ?? DefaultGuestOSTypes.Windows;
+
+            HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
+            GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
         }
 
         #region Commands
@@ -51,24 +104,62 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         public void Browse()
         {
-            Microsoft.Win32.OpenFileDialog dialog = new();
-            if (Model.Hypervisor == HypervisorType.VirtualBox)
+            var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                dialog.Filter = "VirtualBox VM Files (*.vbox)|*.vbox";
-                dialog.Title = "Select a VirtualBox VM File";
-            }
-            else if (Model.Hypervisor == HypervisorType.QEMU)
-            {
-                dialog.Filter = "QEMU Configuration (*.qemu)|*.qemu";
-                dialog.Title = "Select QEMU Configuration Target File";
-            }
-            else if (Model.Hypervisor == HypervisorType.VMWare)
-            {
-                dialog.Filter = "VMware Configuration (*.vmx)|*.vmx";
-                dialog.Title = "Select Virtual Machine VMX Configuration Target File";
-            }
+                Title = "Select a Virtual Machine File"
+            };
 
             if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
+        }
+
+        [RelayCommand]
+        private async Task AddHypervisorAsync()
+        {
+            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+            var currentHypervisor = HypervisorType;
+
+            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            {
+                HypervisorModel newHypervisor = vm.CreatedHypervisor;
+                await _ctx.HypervisorRepository.SaveAsync(newHypervisor);
+
+                int sentinelIndex = Hypervisors.IndexOf(AddNewHypervisorSentinel);
+                if (sentinelIndex >= 0)
+                    Hypervisors.Insert(sentinelIndex, newHypervisor);
+                else
+                    Hypervisors.Add(newHypervisor);
+
+                HypervisorType = newHypervisor;
+            }
+            else
+            {
+                HypervisorType = currentHypervisor;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddGuestOSAsync()
+        {
+            var dialog = new AddGuestOSView { Owner = Application.Current?.MainWindow };
+            var currentGuestOS = GuestOSType;
+
+            if (dialog.ShowDialog() == true && dialog.DataContext is AddGuestOSViewModel vm)
+            {
+                GuestOSModel newGuestOS = vm.CreatedGuestOS;
+                await _ctx.GuestOSRepository.SaveAsync(newGuestOS);
+
+                int sentinelIndex = GuestOSTypes.IndexOf(AddNewGuestOSSentinel);
+                if (sentinelIndex >= 0)
+                    GuestOSTypes.Insert(sentinelIndex, newGuestOS);
+                else
+                    GuestOSTypes.Add(newGuestOS);
+
+                GuestOSType = newGuestOS;
+            }
+            else
+            {
+                GuestOSType = currentGuestOS;
+            }
         }
 
         #endregion
@@ -82,20 +173,44 @@ namespace VMUpdater.ViewModels
         public partial double UpdateProgress { get; set; }
 
         [ObservableProperty]
-        public partial HypervisorType HypervisorType { get; set; }
+        public partial HypervisorModel HypervisorType { get; set; } = new();
 
-        partial void OnHypervisorTypeChanged(HypervisorType value)
+        partial void OnHypervisorTypeChanging(HypervisorModel value)
         {
-            Model.Hypervisor = value;
+            if (value == AddNewHypervisorSentinel)
+            {
+                AddHypervisorCommand.Execute(null);
+                OnPropertyChanged(nameof(HypervisorType));
+            }
+        }
+
+        partial void OnHypervisorTypeChanged(HypervisorModel value)
+        {
+            if (value == AddNewHypervisorSentinel || value == null)
+                return;
+
+            Model.HypervisorId = value.Id;
             _ = SaveAsync();
         }
 
         [ObservableProperty]
-        public partial string GuestOSType { get; set; } = string.Empty;
+        public partial GuestOSModel GuestOSType { get; set; } = DefaultGuestOSTypes.Windows;
 
-        partial void OnGuestOSTypeChanged(string value)
+        partial void OnGuestOSTypeChanging(GuestOSModel value)
         {
-            Model.GuestOSType = value;
+            if (value == AddNewGuestOSSentinel)
+            {
+                AddGuestOSCommand.Execute(null);
+                OnPropertyChanged(nameof(GuestOSType));
+            }
+        }
+
+        partial void OnGuestOSTypeChanged(GuestOSModel value)
+        {
+            if (value == AddNewGuestOSSentinel || value == null)
+                return;
+
+            Model.GuestOSId = value.Id;
             _ = SaveAsync();
         }
 
@@ -104,11 +219,7 @@ namespace VMUpdater.ViewModels
             get => Model.VMPath;
             set
             {
-                if (SetProperty(
-                    Model.VMPath,
-                    value,
-                    Model,
-                    (model, val) => model.VMPath = val))
+                if (SetProperty(Model.VMPath, value, Model, (m, val) => m.VMPath = val))
                 {
                     DisplayName = !string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
                     _ = SaveAsync();
@@ -163,7 +274,7 @@ namespace VMUpdater.ViewModels
         partial void OnIsExpandedChanged(bool value)
         {
             ExpandedIcon = value ? "\uE70E" : "\uE70D";
-            if (value) _onExpanded?.Invoke(this);
+            if (value) _ctx.OnExpanded?.Invoke(this);
         }
 
         [ObservableProperty]
@@ -174,11 +285,7 @@ namespace VMUpdater.ViewModels
             get => Model.LastUpdate;
             set
             {
-                if (SetProperty(
-                    Model.LastUpdate,
-                    value,
-                    Model,
-                    (model, val) => model.LastUpdate = val))
+                if (SetProperty(Model.LastUpdate, value, Model, (m, val) => m.LastUpdate = val))
                 {
                     OnPropertyChanged(nameof(LastUpdateDisplayText));
                 }
@@ -199,9 +306,9 @@ namespace VMUpdater.ViewModels
 
         private async Task SaveAsync()
         {
-            if (_repository != null)
+            if (_ctx.Repository != null)
             {
-                await _repository.SaveAsync(Model);
+                await _ctx.Repository.SaveAsync(Model);
             }
         }
 
@@ -222,5 +329,8 @@ namespace VMUpdater.ViewModels
                 OnPropertyChanged(nameof(NextUpdateDisplayText));
             }
         }
+
+        private static readonly HypervisorModel AddNewHypervisorSentinel = new() { Name = "+ Add New Hypervisor..." };
+        private static readonly GuestOSModel AddNewGuestOSSentinel = new() { Name = "+ Add New Guest OS..." };
     }
 }

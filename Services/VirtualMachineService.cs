@@ -1,14 +1,29 @@
-﻿using VMUpdater.Models;
+﻿// VMUpdater - Automated headless VM update scheduler
+// Copyright (C) 2025  Aaron Shaw
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
+using VMUpdater.Services.Orchestration;
+using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
+using static VMUpdater.Services.Orchestration.GenericHypervisorUpdater;
 
 namespace VMUpdater.Services
 {
-    public class VirtualMachineService(IEnumerable<IHypervisorUpdater> updaters) : IVirtualMachineService
+    public class VirtualMachineService(GenericHypervisorUpdater updater, IHypervisorRepository hypervisorRepository, IGuestOSRepository guestOSRepository) : IVirtualMachineService
     {
-        /// <summary>
-        /// A dictionary mapping hypervisor types to their corresponding updaters.
-        /// </summary>
-        private readonly IDictionary<HypervisorType, IHypervisorUpdater> _updaters = updaters.ToDictionary(u => u.Hypervisor, u => u);
 
         /// <summary>
         /// Starts the update process for a given virtual machine.
@@ -18,20 +33,23 @@ namespace VMUpdater.Services
         /// <param name="runProcessExecutor">The function to execute processes.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         /// <exception cref="NotSupportedException"></exception>
-        public async Task StartUpdateAsync(
-            VirtualMachineModel vmData,
-            Action<UpdateProgressReport> progressCallback,
-            Func<string, string, string, Task<int>> runProcessExecutor)
+        public async Task StartUpdateAsync(VirtualMachineModel vmData, Action<UpdateProgressReport> progressCallback, Func<string, string, string, Task<int>> runProcessExecutor)
         {
             if (vmData == null) return;
 
-            if (!_updaters.TryGetValue(vmData.Hypervisor, out var updater))
-                throw new NotSupportedException($"Hypervisor {vmData.Hypervisor} not supported.");
+            HypervisorModel? hypervisor = await hypervisorRepository.GetByIdAsync(vmData.HypervisorId);
+            if (hypervisor == null) return;
 
+            GuestOSModel? guestOS = await guestOSRepository.GetByIdAsync(vmData.GuestOSId);
+            if (guestOS == null) return;
+
+            string guestOSUpdateScript = GuestOSProvider.GetOsUpdateScript(guestOS.Name, vmData.Password);
             bool success = false;
+            var context = new VMUpdateContext(hypervisor, guestOS, vmData, progressCallback, runProcessExecutor);
+
             try
             {
-                success = await updater.UpdateVMAsync(vmData, progressCallback, runProcessExecutor);
+                success = await updater.UpdateVMAsync(context, guestOSUpdateScript);
             }
             finally
             {

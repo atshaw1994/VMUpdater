@@ -21,30 +21,6 @@ namespace VMUpdater.Views
             DataContext = _viewModel;
         }
 
-        private void CollectionViewSource_VmWareFilter(object sender, FilterEventArgs e)
-        {
-            if (e.Item is VirtualMachineViewModel vmViewModel)
-                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.VMWare;
-            else
-                e.Accepted = false;
-        }
-
-        private void CollectionViewSource_VirtualBoxFilter(object sender, FilterEventArgs e)
-        {
-            if (e.Item is VirtualMachineViewModel vmViewModel)
-                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.VirtualBox;
-            else
-                e.Accepted = false;
-        }
-
-        private void CollectionViewSource_QemuFilter(object sender, FilterEventArgs e)
-        {
-            if (e.Item is VirtualMachineViewModel vmViewModel)
-                e.Accepted = vmViewModel.Model.Hypervisor == HypervisorType.QEMU;
-            else
-                e.Accepted = false;
-        }
-
         private void LogTextBox_Loaded(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox logTextBox) logTextBox.ScrollToEnd();

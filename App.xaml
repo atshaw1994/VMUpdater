@@ -12,8 +12,6 @@
                 <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/themes/Fluent.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter" />
-
             <Style x:Key="AddGlyphStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
@@ -124,11 +122,28 @@
                 </Setter>
             </Style>
 
+            <Storyboard x:Key="ExpandRowStoryboard">
+                <DoubleAnimation Storyboard.TargetName="RowContainer" Storyboard.TargetProperty="Height" To="40.0" Duration="0:0:0.3">
+                    <DoubleAnimation.EasingFunction>
+                        <CubicEase EasingMode="EaseOut" />
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+            </Storyboard>
+
+            <Storyboard x:Key="CollapseRowStoryboard">
+                <DoubleAnimation Storyboard.TargetName="RowContainer" Storyboard.TargetProperty="Height" To="0.0" Duration="0:0:0.25">
+                    <DoubleAnimation.EasingFunction>
+                        <CubicEase EasingMode="EaseIn" />
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+            </Storyboard>
+
             <Style x:Key="ItemsControlWithScrollBarMargin" TargetType="ItemsControl" BasedOn="{StaticResource {x:Type ItemsControl}}">
                 <Setter Property="Margin" Value="0,0,0,0"/>
 
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=MainScrollViewer}" Value="Visible">
+                    <DataTrigger Binding="{Binding Path=ComputedVerticalScrollBarVisibility, 
+                                                    RelativeSource={RelativeSource AncestorType={x:Type ScrollViewer}}}" Value="Visible">
                         <Setter Property="Margin" Value="0,0,15,0"/>
                     </DataTrigger>
                 </Style.Triggers>
