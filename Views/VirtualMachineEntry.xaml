@@ -35,8 +35,7 @@
                      HorizontalAlignment="Right"
                      Margin="0,0,32,0"
                      Value="{Binding UpdateProgress}"
-                     Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                     d:Visibility="Visible"/>
+                     IsVisible="{Binding IsUpdating}"/>
 
         <TextBlock IsHitTestVisible="False" 
                    FontSize="16" 

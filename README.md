@@ -5,11 +5,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ## Avalonia Migration Todo List
 ### :heavy_check_mark: **Phase 1 — Project Setup**
 ### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
-### :arrows_counterclockwise:**Phase 3 — Helpers & Converters**
- - **Rewrite BooleanToVisibilityConverter.cs:** 
-	- Implement ```IValueConverter``` from ```Avalonia.Data.Converters```
-	- Return ```bool``` instead of ```Visibility enum``` (or delete and use built-in ```BoolConverters```)
-### **Phase 4 — TimePicker UserControl (highest complexity)**
+### :heavy_check_mark: **Phase 3 — Helpers & Converters**
+### :arrows_counterclockwise: **Phase 4 — TimePicker UserControl (highest complexity)**
  - **Rewrite TimePicker.xaml.cs:**
 	- replace all 4 ```DependencyProperty.Register``` / ```FrameworkPropertyMetadata``` declarations with ```AvaloniaProperty.Register<TimePicker, T>()``` (styled or direct properties)
 	- update ```DependencyPropertyChangedEventArgs``` callbacks to Avalonia property-changed signatures

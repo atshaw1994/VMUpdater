@@ -13,7 +13,6 @@
         mc:Ignorable="d"
         Title="VMUpdater" Height="450" Width="800">
     <Window.Resources>
-        <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <DataTemplate DataType="{x:Type viewmodels:VirtualMachineViewModel}">
             <views:VirtualMachineEntry />
         </DataTemplate>
@@ -131,8 +130,7 @@
         <!-- Log Text -->
         <Border Grid.Row="2" 
                 Background="Black"
-                d:Visibility="Collapsed"
-                Visibility="{Binding IsLogVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                IsVisible="{Binding IsLogVisible}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -188,7 +186,7 @@
                     <Button Command="{Binding UpdateAllCommand}"
                             Padding="10,3"
                             Margin="2"
-                            Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                            IsVisible="{Binding !IsUpdating}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE896;" Margin="0,0,4,0" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center"/>
                             <TextBlock Text="Update All" VerticalAlignment="Center"/>
@@ -198,7 +196,7 @@
                     <!-- Show Progress Bar when IsUpdating is true -->
                     <StackPanel Orientation="Horizontal" 
                                 VerticalAlignment="Center"
-                                Visibility="{Binding IsUpdating, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                IsVisible="{Binding IsUpdating}">
                         <ProgressBar Value="{Binding UpdateProgress}" Width="150"/>
                         <TextBlock x:Name="ProgressBarPercentTextBlock" 
                                    Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" 
