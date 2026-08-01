@@ -7,18 +7,9 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
 ### :heavy_check_mark: **Phase 3 — Helpers & Converters**
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
-### :arrow_right: **Phase 5 — Views (XAML)**
- - :heavy_check_mark: **Rewrite MainWindow.xaml:**
- - :heavy_check_mark: **Rewrite VirtualMachineEntry.xaml:**
- - :heavy_check_mark: **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
- - :heavy_check_mark: **Rewrite AboutDialog.xaml:**
- - :arrows_counterclockwise: **Update all code-behind files:** 
-	- change ```using System.Windows.*``` to ```using Avalonia.*``` equivalents
-	- update ```RoutedEventArgs```
-	- update ```TextChangedEventArgs```
-	- update ```Window.Closing``` → ```WindowClosingEventArgs```
-### **Phase 6 — ViewModels**
- - **Update MainViewModel.cs:**
+### :heavy_check_mark: **Phase 5 — Views (XAML)**
+### :arrow_right: **Phase 6 — ViewModels**
+ - :arrows_counterclockwise: **Update MainViewModel.cs:**
 	- Replace ```ICollectionView``` / ```CollectionViewSource``` / ```BindingOperations``` with a FilteredVMs ObservableCollection computed via LINQ
 	- Remove ```BindingOperations.EnableCollectionSynchronization```
 	- Replace ```Microsoft.Win32.OpenFileDialog``` / ```SaveFileDialog``` with ```StorageProvider.OpenFilePickerAsync``` / ```SaveFilePickerAsync``` (inject ```IStorageProvider``` or use a file picker service)

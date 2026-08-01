@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
 using VMUpdater.ViewModels;
 
 namespace VMUpdater.Views
@@ -18,17 +19,17 @@ namespace VMUpdater.Views
             DataContext = _viewModel;
         }
 
-        private void LogTextBox_Loaded(object sender, RoutedEventArgs e)
+        private void LogTextBox_Loaded(object sender, RoutedEventArgs e) => ScrollTextBoxToEnd(sender);
+
+        private void LogTextBox_TextChanged(object sender, TextChangedEventArgs e) => ScrollTextBoxToEnd(sender);
+
+        private static void ScrollTextBoxToEnd(object? sender)
         {
-            if (sender is TextBox logTextBox) logTextBox.ScrollToEnd();
+            if (sender is TextBox logTextBox)
+                logTextBox.CaretIndex = logTextBox.Text?.Length ?? 0;
         }
 
-        private void LogTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (sender is TextBox logTextBox) logTextBox.ScrollToEnd();
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Window_Closing(object? sender, WindowClosingEventArgs e)
         {
             e.Cancel = true;
             Hide();

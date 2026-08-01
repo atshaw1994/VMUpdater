@@ -7,9 +7,6 @@ namespace VMUpdater.Views
     /// </summary>
     public partial class AddGuestOSView : Window
     {
-        public AddGuestOSView()
-        {
-            InitializeComponent();
-        }
+        public AddGuestOSView() => InitializeComponent();
     }
 }

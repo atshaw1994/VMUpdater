@@ -7,9 +7,6 @@ namespace VMUpdater.Views
     /// </summary>
     public partial class AddNewHypervisorView : Window
     {
-        public AddNewHypervisorView()
-        {
-            InitializeComponent();
-        }
+        public AddNewHypervisorView() => InitializeComponent();
     }
 }

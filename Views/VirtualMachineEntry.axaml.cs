@@ -7,9 +7,6 @@ namespace VMUpdater.Views
     /// </summary>
     public partial class VirtualMachineEntry : UserControl
     {
-        public VirtualMachineEntry()
-        {
-            InitializeComponent();
-        }
+        public VirtualMachineEntry() => InitializeComponent();
     }
 }
