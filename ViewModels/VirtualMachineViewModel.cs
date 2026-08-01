@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.IO;
 using VMUpdater.Models;
-using VMUpdater.Views;
 using VMUpdater.Services.Abstractions;
-using System.Windows;
 using VMUpdater.Services.Orchestration;
+using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
 {
@@ -102,23 +104,39 @@ namespace VMUpdater.ViewModels
         private void UpdateNow() => RequestStartUpdate?.Invoke(this, true);
 
         [RelayCommand]
-        public void Browse()
+        public async Task BrowseAsync()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select a Virtual Machine File"
-            };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
 
-            if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
+            var topLevel = TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select a Virtual Machine File",
+                AllowMultiple = false
+            });
+
+            var file = files.FirstOrDefault();
+            if (file != null)
+            {
+                VMPath = file.Path.LocalPath;
+            }
         }
 
         [RelayCommand]
         private async Task AddHypervisorAsync()
         {
-            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddNewHypervisorView();
             var currentHypervisor = HypervisorType;
 
-            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            bool isSuccess = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (isSuccess && dialog.DataContext is AddHypervisorViewModel vm)
             {
                 HypervisorModel newHypervisor = vm.CreatedHypervisor;
                 await _ctx.HypervisorRepository.SaveAsync(newHypervisor);
@@ -140,10 +158,15 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private async Task AddGuestOSAsync()
         {
-            var dialog = new AddGuestOSView { Owner = Application.Current?.MainWindow };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddGuestOSView();
             var currentGuestOS = GuestOSType;
 
-            if (dialog.ShowDialog() == true && dialog.DataContext is AddGuestOSViewModel vm)
+            bool isSuccess = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (isSuccess && dialog.DataContext is AddGuestOSViewModel vm)
             {
                 GuestOSModel newGuestOS = vm.CreatedGuestOS;
                 await _ctx.GuestOSRepository.SaveAsync(newGuestOS);

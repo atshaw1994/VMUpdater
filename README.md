@@ -10,11 +10,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 5 — Views (XAML)**
 ### :arrow_right: **Phase 6 — ViewModels**
  - :heavy_check_mark: **Update MainViewModel.cs:**
- - :arrows_counterclockwise: **Update VirtualMachineViewModel.cs:**
-	- Replace ```Microsoft.Win32.OpenFileDialog``` with StorageProvider API
-	- Replace AddNewHypervisorView/AddGuestOSView ```ShowDialog()``` calls with ```window.ShowDialog<T>(owner)``` returning ```Task<T>```
-	- Replace ```dialog.DialogResult == true``` check with typed return value
- - **Update AddGuestOSViewModel.cs and AddHypervisorViewModel.cs:**
+ - :heavy_check_mark: **Update VirtualMachineViewModel.cs:**
+ - :arrows_counterclockwise: **Update AddGuestOSViewModel.cs and AddHypervisorViewModel.cs:**
 	- Remove ```Window``` parameter from Save commands; introduce ```ICloseable``` interface or close via ```Window.Close(result)``` pattern
 	- Replace ```window.DialogResult = true``` with ```window.Close(true)```
 	- Replace ```Microsoft.Win32.OpenFileDialog``` (in AddHypervisorViewModel) with StorageProvider API
