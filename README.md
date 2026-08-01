@@ -3,7 +3,7 @@
 This branch's purpose is to convert the project to use Avalonia UI instead of WPF to allow cross-platform compatibility. The project is still in development, and some features may not be fully implemented yet.
 
 ## Avalonia Migration Todo List
-### **Phase 1 — Project Setup**
+### :heavy_check_mark: **Phase 1 — Project Setup**
  - **Install Avalonia templates**
  - **Update VMUpdater.csproj:**
 	- remove ```<UseWPF> true </UseWPF>```
