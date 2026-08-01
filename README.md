@@ -8,14 +8,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 3 — Helpers & Converters**
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
 ### :heavy_check_mark: **Phase 5 — Views (XAML)**
-### :arrow_right: **Phase 6 — ViewModels**
- - :heavy_check_mark: **Update MainViewModel.cs:**
- - :heavy_check_mark: **Update VirtualMachineViewModel.cs:**
- - :arrows_counterclockwise: **Update AddGuestOSViewModel.cs and AddHypervisorViewModel.cs:**
-	- Remove ```Window``` parameter from Save commands; introduce ```ICloseable``` interface or close via ```Window.Close(result)``` pattern
-	- Replace ```window.DialogResult = true``` with ```window.Close(true)```
-	- Replace ```Microsoft.Win32.OpenFileDialog``` (in AddHypervisorViewModel) with StorageProvider API
-### **Phase 7 — Assets & Resources**
+### :heavy_check_mark: **Phase 6 — ViewModels**
+### :arrow_right: **Phase 7 — Assets & Resources**
  - **Update VMUpdater.ico / tray icon reference**
 	- from ```pack://application:,,,/Resources/VMUpdater.ico``` to ```avares://VMUpdater/Resources/VMUpdater.ico```
  - **Ensure icon/image assets are marked as ```AvaloniaResource``` in the .csproj**

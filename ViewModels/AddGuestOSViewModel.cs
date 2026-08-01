@@ -1,10 +1,14 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// VMUpdater - Automated headless VM update scheduler
+// Copyright (C) 2025 Aaron Shaw
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+using Avalonia.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Xml.Linq;
 using VMUpdater.Models;
 
 namespace VMUpdater.ViewModels
@@ -27,31 +31,20 @@ namespace VMUpdater.ViewModels
         #region Commands
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-        private void Save(Window window)
+        private void Save(ICloseable? window)
         {
             // Populate the new model instance
             CreatedGuestOS.Name = Name.Trim();
             CreatedGuestOS.NetworkCheckArgumentTemplate = NetworkCheckArgumentTemplate.Trim();
 
-            // Set DialogResult to true to signal successful creation
-            if (window != null)
-            {
-                window.DialogResult = true;
-                window.Close();
-            }
+            // Close dialog passing true to signal successful creation
+            window?.Close(true);
         }
 
         private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
         [RelayCommand]
-        private static void Cancel(Window window)
-        {
-            if (window != null)
-            {
-                window.DialogResult = false;
-                window.Close();
-            }
-        }
+        private static void Cancel(ICloseable? window) => window?.Close(false);
 
         #endregion
     }
