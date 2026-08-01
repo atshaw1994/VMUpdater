@@ -4,19 +4,7 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 
 ## Avalonia Migration Todo List
 ### :heavy_check_mark: **Phase 1 — Project Setup**
- - **Install Avalonia templates**
- - **Update VMUpdater.csproj:**
-	- remove ```<UseWPF> true </UseWPF>```
-	- change TFM from ```net10.0-windows``` to ```net10.0```
-	- add Avalonia SDK and package references
- - **Replace H.NotifyIcon.Wpf with H.NotifyIcon (Avalonia-compatible base package)**
- - **Add NuGet packages:** 
-	- Avalonia
-	- Avalonia.Desktop
-	- Avalonia.Themes.Fluent
-	- Avalonia.Fonts.Inter (or bundle Segoe Fluent Icons)
-	- FluentIcons.Avalonia (optional icon font replacement)
-### **Phase 2 — App Entry Point & Bootstrapping**
+### :arrows_counterclockwise: **Phase 2 — App Entry Point & Bootstrapping**
  - **Rewrite App.xaml:**
 	- replace WPF root namespace with ```Avalonia```
 	- replace ```ThemeMode="System"``` with ```RequestedThemeVariant```
