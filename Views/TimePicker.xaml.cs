@@ -1,54 +1,61 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System;
+using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Data;
 
 namespace VMUpdater.Views
 {
     /// <summary>
-    /// Interaction logic for TimePicker.xaml
+    /// Interaction logic for TimePicker.axaml
     /// </summary>
     public partial class TimePicker : UserControl
     {
         private bool _isSynchronizing;
 
-        // 1. Define the Dependency Property for the parent to bind to
-        public static readonly DependencyProperty SelectedTimeProperty =
-            DependencyProperty.Register(
+        // 1. Define the Avalonia Styled Properties
+        public static readonly StyledProperty<DateTime> SelectedTimeProperty =
+            AvaloniaProperty.Register<TimePicker, DateTime>(
                 nameof(SelectedTime),
-                typeof(DateTime),
-                typeof(TimePicker),
-                new FrameworkPropertyMetadata(DateTime.Now, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedTimeChanged));
+                defaultValue: DateTime.Now,
+                defaultBindingMode: BindingMode.TwoWay);
 
         public DateTime SelectedTime
         {
-            get => (DateTime)GetValue(SelectedTimeProperty);
+            get => GetValue(SelectedTimeProperty);
             set => SetValue(SelectedTimeProperty, value);
         }
 
-        // Internal dependency properties for the ComboBoxes to bind to
-        public static readonly DependencyProperty SelectedHourProperty =
-            DependencyProperty.Register(nameof(SelectedHour), typeof(int), typeof(TimePicker), new PropertyMetadata(12, OnInternalPropertyChanged));
+        public static readonly StyledProperty<int> SelectedHourProperty =
+            AvaloniaProperty.Register<TimePicker, int>(
+                nameof(SelectedHour),
+                defaultValue: 12);
 
         public int SelectedHour
         {
-            get => (int)GetValue(SelectedHourProperty);
+            get => GetValue(SelectedHourProperty);
             set => SetValue(SelectedHourProperty, value);
         }
 
-        public static readonly DependencyProperty SelectedMinuteProperty =
-            DependencyProperty.Register(nameof(SelectedMinute), typeof(int), typeof(TimePicker), new PropertyMetadata(0, OnInternalPropertyChanged));
+        public static readonly StyledProperty<int> SelectedMinuteProperty =
+            AvaloniaProperty.Register<TimePicker, int>(
+                nameof(SelectedMinute),
+                defaultValue: 0);
 
         public int SelectedMinute
         {
-            get => (int)GetValue(SelectedMinuteProperty);
+            get => GetValue(SelectedMinuteProperty);
             set => SetValue(SelectedMinuteProperty, value);
         }
 
-        public static readonly DependencyProperty SelectedMeridianProperty =
-            DependencyProperty.Register(nameof(SelectedMeridian), typeof(string), typeof(TimePicker), new PropertyMetadata("AM", OnInternalPropertyChanged));
+        public static readonly StyledProperty<string> SelectedMeridianProperty =
+            AvaloniaProperty.Register<TimePicker, string>(
+                nameof(SelectedMeridian),
+                defaultValue: "AM");
 
         public string SelectedMeridian
         {
-            get => (string)GetValue(SelectedMeridianProperty);
+            get => GetValue(SelectedMeridianProperty);
             set => SetValue(SelectedMeridianProperty, value);
         }
 
@@ -56,6 +63,15 @@ namespace VMUpdater.Views
         public List<int> Hours { get; } = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
         public List<int> Minutes { get; } = CreateMinuteList();
         public List<string> Meridians { get; } = ["AM", "PM"];
+
+        static TimePicker()
+        {
+            // Register property change notifications statically via AvaloniaProperty.Changed
+            SelectedTimeProperty.Changed.AddClassHandler<TimePicker>((x, e) => x.OnSelectedTimeChanged(e));
+            SelectedHourProperty.Changed.AddClassHandler<TimePicker>((x, e) => x.OnInternalPropertyChanged(e));
+            SelectedMinuteProperty.Changed.AddClassHandler<TimePicker>((x, e) => x.OnInternalPropertyChanged(e));
+            SelectedMeridianProperty.Changed.AddClassHandler<TimePicker>((x, e) => x.OnInternalPropertyChanged(e));
+        }
 
         public TimePicker()
         {
@@ -70,22 +86,15 @@ namespace VMUpdater.Views
             return list;
         }
 
-        // Triggers when the parent ViewModel updates "SelectedTime"
-        private static void OnSelectedTimeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        // Property changed handlers using AvaloniaPropertyChangedEventArgs
+        private void OnSelectedTimeChanged(AvaloniaPropertyChangedEventArgs e)
         {
-            if (d is TimePicker control)
-            {
-                control.SyncWrappersFromSelectedTime();
-            }
+            SyncWrappersFromSelectedTime();
         }
 
-        // Triggers when the user changes one of the three ComboBoxes
-        private static void OnInternalPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private void OnInternalPropertyChanged(AvaloniaPropertyChangedEventArgs e)
         {
-            if (d is TimePicker control)
-            {
-                control.SyncSelectedTimeFromWrappers();
-            }
+            SyncSelectedTimeFromWrappers();
         }
 
         private void SyncWrappersFromSelectedTime()

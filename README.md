@@ -6,29 +6,18 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 1 — Project Setup**
 ### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
 ### :heavy_check_mark: **Phase 3 — Helpers & Converters**
-### :arrows_counterclockwise: **Phase 4 — TimePicker UserControl (highest complexity)**
- - **Rewrite TimePicker.xaml.cs:**
-	- replace all 4 ```DependencyProperty.Register``` / ```FrameworkPropertyMetadata``` declarations with ```AvaloniaProperty.Register<TimePicker, T>()``` (styled or direct properties)
-	- update ```DependencyPropertyChangedEventArgs``` callbacks to Avalonia property-changed signatures
-	- change base class to ```Avalonia.Controls.UserControl```
- - **Rewrite TimePicker.xaml:**
-	- update namespace declarations to ```Avalonia```
-	- verify ```ElementName=Root``` binding still works
-### **Phase 5 — Views (XAML)**
- - **Rewrite MainWindow.xaml:**
- 	- Change root to ```Avalonia Window```
-	- remove ```ThemeMode="System"```
-	- add ```RequestedThemeVariant```
+### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
+### :arrows_counterclockwise: **Phase 5 — Views (XAML)**
+ - :heavy_check_mark: **Rewrite MainWindow.xaml:**
  	- Replace all WPF Fluent DynamicResource brush keys with Avalonia theme resource keys
  	- Replace ```StatusBar```/```StatusBarItem``` with a ```Grid```/```StackPanel``` footer
- 	- Replace ApplicationCommands.Cut/Copy/Paste — remove from Menu; Avalonia TextBox handles these natively
  	- Replace ```Style.Triggers/DataTrigger``` row-expand animation with Avalonia Animation or Transition on height
  	- Replace App.xaml ProgressBar ControlTemplate + Storyboard with Avalonia control theme
  	- Remove ```TextOptions.*``` / ```RenderOptions.*``` attached properties
  	- Replace ```DataTemplate DataType="{x:Type ...}"``` with Avalonia DataType syntax
  	- Replace ```ItemsControlWithScrollBarMargin``` DataTrigger (ancestor ScrollViewer binding) with an Avalonia equivalent
  	- Replace ```Segoe Fluent Icons Unicode``` glyphs with bundled asset or ```FluentIcons.Avalonia``` glyphs
- - **Rewrite VirtualMachineEntry.xaml:**
+ - :arrows_counterclockwise: **Rewrite VirtualMachineEntry.xaml:**
  	- Replace all DynamicResource Fluent brush keys
  	- Replace ```Style.Triggers/DataTrigger``` for DetailsPanel visibility with Avalonia style selectors or IsVisible binding
  	- Fix ```SelectedValuePath="Content"``` on ComboBox (use ```SelectedItem``` binding or ```SelectedValueBinding```)
