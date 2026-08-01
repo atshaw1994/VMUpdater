@@ -9,12 +9,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
 ### :heavy_check_mark: **Phase 5 — Views (XAML)**
 ### :heavy_check_mark: **Phase 6 — ViewModels**
-### :arrow_right: **Phase 7 — Assets & Resources**
- - **Update VMUpdater.ico / tray icon reference**
-	- from ```pack://application:,,,/Resources/VMUpdater.ico``` to ```avares://VMUpdater/Resources/VMUpdater.ico```
- - **Ensure icon/image assets are marked as ```AvaloniaResource``` in the .csproj**
- - **Bundle ```Segoe Fluent Icons``` font as an embedded asset, or replace with ```FluentIcons.Avalonia NuGet```**
-### **Phase 8 — Verification**
+### :heavy_check_mark: **Phase 7 — Assets & Resources**
+### :arrow_right: **Phase 8 — Verification**
  - Build project and resolve any remaining compile errors
  - Run on Windows and verify UI renders correctly with Fluent theme
  - Test on Linux/macOS (or a Linux Docker container) to verify cross-platform functionality
