@@ -11,12 +11,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
  - :heavy_check_mark: **Rewrite MainWindow.xaml:**
  - :heavy_check_mark: **Rewrite VirtualMachineEntry.xaml:**
  - :heavy_check_mark: **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
- - :arrows_counterclockwise: **Rewrite AboutDialog.xaml:**
-	- change Window root
-	- replace ThemeMode
-	- replace DynamicResource brush keys
-	- fix CornerRadius on Button (set directly or via style)
- - **Update all code-behind files:** 
+ - :heavy_check_mark: **Rewrite AboutDialog.xaml:**
+ - :arrows_counterclockwise: **Update all code-behind files:** 
 	- change ```using System.Windows.*``` to ```using Avalonia.*``` equivalents
 	- update ```RoutedEventArgs```
 	- update ```TextChangedEventArgs```
