@@ -1,8 +1,8 @@
-﻿using H.NotifyIcon;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Threading;
 using VMUpdater.Services;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
@@ -17,100 +17,43 @@ namespace VMUpdater
 
         private DispatcherTimer? _schedulerTimer;
         private MainViewModel? _viewModel;
-        private MainWindow? _mainWindow;
-        private TaskbarIcon? _notifyIcon;
 
-        private void Application_Startup(object sender, StartupEventArgs e)
+        public override void OnFrameworkInitializationCompleted()
         {
-            // 1. Build Dependency Injection Container
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
             Services = serviceCollection.BuildServiceProvider();
 
-            // 2. Resolve MainViewModel via DI
             _viewModel = Services.GetRequiredService<MainViewModel>();
+            DataContext = _viewModel; // enables TrayIcon XAML bindings
 
-            // 3. Set up the Background Scheduler
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                desktop.MainWindow = Services.GetRequiredService<MainWindow>();
+                desktop.MainWindow.Show();
+                desktop.Exit += (_, _) => _schedulerTimer?.Stop();
+            }
+
             _schedulerTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
             _schedulerTimer.Tick += BackgroundSchedulerLoop_Tick;
             _schedulerTimer.Start();
 
-            // 4. Resolve & Initialize MainWindow via DI
-            _mainWindow = Services.GetRequiredService<MainWindow>();
-            MainWindow = _mainWindow;
-            _mainWindow.Show();
-
-            // 5. Construct TaskbarIcon in code
-            InitializeTrayIcon();
-
-            // 6. Tooltip Push Model
-            if (_notifyIcon != null)
-            {
-                _notifyIcon.ToolTipText = _viewModel.TrayToolTipText;
-
-                _viewModel.OnTooltipRefreshRequested += (newTooltip) =>
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        _notifyIcon?.ToolTipText = newTooltip;
-                    }));
-                };
-            }
+            base.OnFrameworkInitializationCompleted();
         }
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            // Core Application Services & Infrastructure
             services.AddSingleton<IVirtualMachineRepository, JsonVirtualMachineRepository>();
             services.AddSingleton<IHypervisorRepository, JsonHypervisorRepository>();
             services.AddSingleton<IGuestOSRepository, JsonGuestOSRepository>();
-
-            // Register Generic Hypervisor Orchestrator
             services.AddSingleton<GenericHypervisorUpdater>();
-
-            // Main Orchestration Service
             services.AddTransient<IVirtualMachineService, VirtualMachineService>();
-
-            // Register Context Bundles for DI Resolution
             services.AddSingleton<MainServicesContext>();
-
-            // ViewModels
             services.AddSingleton<MainViewModel>();
-
-            // Views
             services.AddTransient(provider => new MainWindow(
                 provider.GetRequiredService<MainViewModel>()
             ));
-        }
-
-        private void InitializeTrayIcon()
-        {
-            if (_viewModel == null) return;
-
-            // Build Context Menu in code
-            var contextMenu = new ContextMenu();
-
-            var menuOpen = new MenuItem { Header = "Open", Command = _viewModel.ShowMainWindowCommand };
-            var menuOpenLog = new MenuItem { Header = "Open Log", Command = _viewModel.ShowLogCommand };
-            var menuUpdateAll = new MenuItem { Header = "Update All", Command = _viewModel.UpdateAllCommand };
-            var menuExit = new MenuItem { Header = "Exit", Command = _viewModel.ExitCommand };
-
-            contextMenu.Items.Add(menuOpen);
-            contextMenu.Items.Add(menuOpenLog);
-            contextMenu.Items.Add(menuUpdateAll);
-            contextMenu.Items.Add(new Separator());
-            contextMenu.Items.Add(menuExit);
-
-            _notifyIcon = new TaskbarIcon
-            {
-                IconSource = new System.Windows.Media.Imaging.BitmapImage(
-                    new Uri("pack://application:,,,/Resources/VMUpdater.ico")),
-                ContextMenu = contextMenu,
-                DataContext = _viewModel,
-                DoubleClickCommand = _viewModel.ShowMainWindowCommand
-            };
-
-            _notifyIcon.ForceCreate();
         }
 
         private async void BackgroundSchedulerLoop_Tick(object? sender, EventArgs e)
@@ -132,12 +75,6 @@ namespace VMUpdater
                     _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
                 }
             }
-        }
-
-        private void Application_Exit(object sender, ExitEventArgs e)
-        {
-            _schedulerTimer?.Stop();
-            _notifyIcon?.Dispose(); // Prevents lingering ghost icons in system tray
         }
     }
 }

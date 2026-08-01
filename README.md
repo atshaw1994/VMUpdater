@@ -4,20 +4,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 
 ## Avalonia Migration Todo List
 ### :heavy_check_mark: **Phase 1 — Project Setup**
-### :arrows_counterclockwise: **Phase 2 — App Entry Point & Bootstrapping**
- - **Rewrite App.xaml:**
-	- replace WPF root namespace with ```Avalonia```
-	- replace ```ThemeMode="System"``` with ```RequestedThemeVariant```
-	- remove ```PresentationFramework.Fluent``` theme merge
-	- add ```<FluentTheme />```
- - **Rewrite App.xaml.cs:** 
-	- Change base class to ```Avalonia.Application```
-	- Add ```BuildAvaloniaApp()``` / ```AppMain()``` entry points
-	- Replace ```DispatcherTimer``` (```System.Windows.Threading``` → ```Avalonia.Threading```)
-	- Replace ```Dispatcher.BeginInvoke``` with ```Dispatcher.UIThread.Post```
-	- Replace ```BitmapImage + pack:// URI``` with new ```Bitmap(AssetLoader.Open(new Uri("avares://...")))```
-	- Replace ```H.NotifyIcon.Wpf``` tray icon setup with Avalonia variant
-### **Phase 3 — Helpers & Converters**
+### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
+### :arrows_counterclockwise:**Phase 3 — Helpers & Converters**
  - **Rewrite BooleanToVisibilityConverter.cs:** 
 	- Implement ```IValueConverter``` from ```Avalonia.Data.Converters```
 	- Return ```bool``` instead of ```Visibility enum``` (or delete and use built-in ```BoolConverters```)

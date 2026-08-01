@@ -1,15 +1,13 @@
 ﻿<Application x:Class="VMUpdater.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:helpers="clr-namespace:VMUpdater.Helpers"
              xmlns:local="clr-namespace:VMUpdater"
-             ThemeMode="System"
-             Startup="Application_Startup"
-             Exit="Application_Exit">
+             RequestedThemeVariant="System">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/themes/Fluent.xaml" />
+                <FluentTheme />
             </ResourceDictionary.MergedDictionaries>
 
             <Style x:Key="AddGlyphStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -150,4 +148,22 @@
             </Style>
         </ResourceDictionary>
     </Application.Resources>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Resources/VMUpdater.ico"
+                      ToolTipText="{Binding TrayToolTipText}"
+                      Command="{Binding ShowMainWindowCommand}">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Open" Command="{Binding ShowMainWindowCommand}" />
+                        <NativeMenuItem Header="Open Log" Command="{Binding ShowLogCommand}" />
+                        <NativeMenuItem Header="Update All" Command="{Binding UpdateAllCommand}" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
 </Application>

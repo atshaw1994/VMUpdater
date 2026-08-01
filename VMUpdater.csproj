@@ -5,19 +5,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <StartupObject>VMUpdater.App</StartupObject>
+    <StartupObject>VMUpdater.Program</StartupObject>
     <ApplicationIcon>VMUpdater.ico</ApplicationIcon>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\VMUpdater.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\VMUpdater.ico">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
+    <AvaloniaResource Include="Resources\VMUpdater.ico" />
     <Content Include="VMUpdater.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -34,7 +28,7 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="FluentIcons.Avalonia" Version="2.1.333" />
-    <PackageReference Include="H.NotifyIcon" Version="2.4.1" />
+
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
   </ItemGroup>
 

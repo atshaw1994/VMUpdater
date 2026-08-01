@@ -49,9 +49,7 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; } = [];
         public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
-        public event Action<string>? OnTooltipRefreshRequested;
-
-        // Primary Dependency Injection Constructor
+// Primary Dependency Injection Constructor
         public MainViewModel(MainServicesContext services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -100,7 +98,6 @@ namespace VMUpdater.ViewModels
         [NotifyCanExecuteChangedFor(nameof(UpdateAllCommand))]
         public partial bool IsUpdating { get; set; } = false;
 
-        partial void OnIsUpdatingChanged(bool value) => OnTooltipRefreshRequested?.Invoke(TrayToolTipText);
 
         [ObservableProperty]
         public partial string LogText { get; set; } = string.Empty;
