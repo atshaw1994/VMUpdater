@@ -9,12 +9,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
 ### :arrows_counterclockwise: **Phase 5 — Views (XAML)**
  - :heavy_check_mark: **Rewrite MainWindow.xaml:**
- - :arrows_counterclockwise: **Rewrite VirtualMachineEntry.xaml:**
- 	- Replace all DynamicResource Fluent brush keys
- 	- Replace ```Style.Triggers/DataTrigger``` for DetailsPanel visibility with Avalonia style selectors or IsVisible binding
- 	- Fix ```SelectedValuePath="Content"``` on ComboBox (use ```SelectedItem``` binding or ```SelectedValueBinding```)
- 	- Remove WPF design-time ```.``` attributes not supported by Avalonia (or update to Avalonia equivalents)
- - **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
+ - :heavy_check_mark: **Rewrite VirtualMachineEntry.xaml:**
+ - :arrows_counterclockwise: **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
 	- change Window root to Avalonia
 	- verify ```IsDefault```/```IsCancel```, ```SizeToContent```, ```WindowStartupLocation```, ```ResizeMode```, ```ShowInTaskbar``` map correctly
  - **Rewrite AboutDialog.xaml:**
