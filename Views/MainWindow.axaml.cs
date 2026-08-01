@@ -1,7 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using VMUpdater.Models;
+﻿using Avalonia.Controls;
 using VMUpdater.ViewModels;
 
 namespace VMUpdater.Views

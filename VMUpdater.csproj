@@ -9,7 +9,7 @@
     <ApplicationIcon>VMUpdater.ico</ApplicationIcon>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
   </PropertyGroup>
-
+	
   <ItemGroup>
     <AvaloniaResource Include="Resources\VMUpdater.ico" />
     <Content Include="VMUpdater.ico">

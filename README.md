@@ -7,13 +7,11 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
 ### :heavy_check_mark: **Phase 3 — Helpers & Converters**
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
-### :arrows_counterclockwise: **Phase 5 — Views (XAML)**
+### :arrow_right: **Phase 5 — Views (XAML)**
  - :heavy_check_mark: **Rewrite MainWindow.xaml:**
  - :heavy_check_mark: **Rewrite VirtualMachineEntry.xaml:**
- - :arrows_counterclockwise: **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
-	- change Window root to Avalonia
-	- verify ```IsDefault```/```IsCancel```, ```SizeToContent```, ```WindowStartupLocation```, ```ResizeMode```, ```ShowInTaskbar``` map correctly
- - **Rewrite AboutDialog.xaml:**
+ - :heavy_check_mark: **Rewrite AddGuestOSView.xaml and AddNewHypervisorView.xaml: **
+ - :arrows_counterclockwise: **Rewrite AboutDialog.xaml:**
 	- change Window root
 	- replace ThemeMode
 	- replace DynamicResource brush keys
