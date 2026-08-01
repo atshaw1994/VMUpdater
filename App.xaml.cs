@@ -61,7 +61,6 @@ namespace VMUpdater
         private static void ConfigureServices(IServiceCollection services)
         {
             // Core Application Services & Infrastructure
-            services.AddSingleton<ISettingsProvider, AppSettingsProvider>();
             services.AddSingleton<IVirtualMachineRepository, JsonVirtualMachineRepository>();
             services.AddSingleton<IHypervisorRepository, JsonHypervisorRepository>();
             services.AddSingleton<IGuestOSRepository, JsonGuestOSRepository>();

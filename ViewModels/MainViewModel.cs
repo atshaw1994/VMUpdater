@@ -111,39 +111,6 @@ namespace VMUpdater.ViewModels
 
         public string TrayToolTipText => $"VMUpdater\n{(IsUpdating ? "Updating..." : "All VMs Updated.")}";
 
-        public string VMWareExecutablePath
-        {
-            get => Properties.Settings.Default.VMRunPath;
-            set => SetProperty(
-                Properties.Settings.Default.VMRunPath,
-                value,
-                Properties.Settings.Default,
-                (settings, val) => { settings.VMRunPath = val; settings.Save(); }
-            );
-        }
-
-        public string VirtualBoxExecutablePath
-        {
-            get => Properties.Settings.Default.VBoxManagePath;
-            set => SetProperty(
-                Properties.Settings.Default.VBoxManagePath,
-                value,
-                Properties.Settings.Default,
-                (settings, val) => { settings.VBoxManagePath = val; settings.Save(); }
-            );
-        }
-
-        public string QEMUExecutablePath
-        {
-            get => Properties.Settings.Default.QEMUExecutablePath;
-            set => SetProperty(
-                Properties.Settings.Default.QEMUExecutablePath,
-                value,
-                Properties.Settings.Default,
-                (settings, val) => { settings.QEMUExecutablePath = val; settings.Save(); }
-            );
-        }
-
         #endregion
 
         #region Commands
