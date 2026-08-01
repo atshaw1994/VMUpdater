@@ -9,14 +9,6 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
 ### :arrows_counterclockwise: **Phase 5 — Views (XAML)**
  - :heavy_check_mark: **Rewrite MainWindow.xaml:**
- 	- Replace all WPF Fluent DynamicResource brush keys with Avalonia theme resource keys
- 	- Replace ```StatusBar```/```StatusBarItem``` with a ```Grid```/```StackPanel``` footer
- 	- Replace ```Style.Triggers/DataTrigger``` row-expand animation with Avalonia Animation or Transition on height
- 	- Replace App.xaml ProgressBar ControlTemplate + Storyboard with Avalonia control theme
- 	- Remove ```TextOptions.*``` / ```RenderOptions.*``` attached properties
- 	- Replace ```DataTemplate DataType="{x:Type ...}"``` with Avalonia DataType syntax
- 	- Replace ```ItemsControlWithScrollBarMargin``` DataTrigger (ancestor ScrollViewer binding) with an Avalonia equivalent
- 	- Replace ```Segoe Fluent Icons Unicode``` glyphs with bundled asset or ```FluentIcons.Avalonia``` glyphs
  - :arrows_counterclockwise: **Rewrite VirtualMachineEntry.xaml:**
  	- Replace all DynamicResource Fluent brush keys
  	- Replace ```Style.Triggers/DataTrigger``` for DetailsPanel visibility with Avalonia style selectors or IsVisible binding
