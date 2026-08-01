@@ -3,7 +3,7 @@
 This branch's purpose is to convert the project to use Avalonia UI instead of WPF to allow cross-platform compatibility. The project is still in development, and some features may not be fully implemented yet.
 
 ## Avalonia Migration Todo List
-1. **Phase 1 — Project Setup**
+### **Phase 1 — Project Setup**
  - **Install Avalonia templates**
  - **Update VMUpdater.csproj:**
 	- remove ```<UseWPF> true </UseWPF>```
@@ -16,7 +16,7 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 	- Avalonia.Themes.Fluent
 	- Avalonia.Fonts.Inter (or bundle Segoe Fluent Icons)
 	- FluentIcons.Avalonia (optional icon font replacement)
-2. **Phase 2 — App Entry Point & Bootstrapping**
+### **Phase 2 — App Entry Point & Bootstrapping**
  - **Rewrite App.xaml:**
 	- replace WPF root namespace with ```Avalonia```
 	- replace ```ThemeMode="System"``` with ```RequestedThemeVariant```
@@ -29,11 +29,11 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 	- Replace ```Dispatcher.BeginInvoke``` with ```Dispatcher.UIThread.Post```
 	- Replace ```BitmapImage + pack:// URI``` with new ```Bitmap(AssetLoader.Open(new Uri("avares://...")))```
 	- Replace ```H.NotifyIcon.Wpf``` tray icon setup with Avalonia variant
-3. **Phase 3 — Helpers & Converters**
+### **Phase 3 — Helpers & Converters**
  - **Rewrite BooleanToVisibilityConverter.cs:** 
 	- Implement ```IValueConverter``` from ```Avalonia.Data.Converters```
 	- Return ```bool``` instead of ```Visibility enum``` (or delete and use built-in ```BoolConverters```)
-4. **Phase 4 — TimePicker UserControl (highest complexity)**
+### **Phase 4 — TimePicker UserControl (highest complexity)**
  - **Rewrite TimePicker.xaml.cs:**
 	- replace all 4 ```DependencyProperty.Register``` / ```FrameworkPropertyMetadata``` declarations with ```AvaloniaProperty.Register<TimePicker, T>()``` (styled or direct properties)
 	- update ```DependencyPropertyChangedEventArgs``` callbacks to Avalonia property-changed signatures
@@ -41,7 +41,7 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
  - **Rewrite TimePicker.xaml:**
 	- update namespace declarations to ```Avalonia```
 	- verify ```ElementName=Root``` binding still works
-5. **Phase 5 — Views (XAML)**
+### **Phase 5 — Views (XAML)**
  - **Rewrite MainWindow.xaml:**
  	- Change root to ```Avalonia Window```
 	- remove ```ThemeMode="System"```
@@ -73,7 +73,7 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 	- update ```RoutedEventArgs```
 	- update ```TextChangedEventArgs```
 	- update ```Window.Closing``` → ```WindowClosingEventArgs```
-6. **Phase 6 — ViewModels**
+### **Phase 6 — ViewModels**
  - **Update MainViewModel.cs:**
 	- Replace ```ICollectionView``` / ```CollectionViewSource``` / ```BindingOperations``` with a FilteredVMs ObservableCollection computed via LINQ
 	- Remove ```BindingOperations.EnableCollectionSynchronization```
@@ -88,12 +88,12 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 	- Remove ```Window``` parameter from Save commands; introduce ```ICloseable``` interface or close via ```Window.Close(result)``` pattern
 	- Replace ```window.DialogResult = true``` with ```window.Close(true)```
 	- Replace ```Microsoft.Win32.OpenFileDialog``` (in AddHypervisorViewModel) with StorageProvider API
-7. **Phase 7 — Assets & Resources**
+### **Phase 7 — Assets & Resources**
  - **Update VMUpdater.ico / tray icon reference**
 	- from ```pack://application:,,,/Resources/VMUpdater.ico``` to ```avares://VMUpdater/Resources/VMUpdater.ico```
  - **Ensure icon/image assets are marked as ```AvaloniaResource``` in the .csproj**
  - **Bundle ```Segoe Fluent Icons``` font as an embedded asset, or replace with ```FluentIcons.Avalonia NuGet```**
-8. **Phase 8 — Verification**
+### **Phase 8 — Verification**
  - Build project and resolve any remaining compile errors
  - Run on Windows and verify UI renders correctly with Fluent theme
  - Test on Linux/macOS (or a Linux Docker container) to verify cross-platform functionality
