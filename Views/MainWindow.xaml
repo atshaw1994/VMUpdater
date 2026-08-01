@@ -90,27 +90,42 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="FindTextBox" Margin="8,0" Height="30"/>
-            <Button Grid.Column="1" Content="&#xe721;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" 
-                    Command="ApplicationCommands.Find" CommandParameter="{Binding Text, ElementName=FindTextBox}"/>
-            <Button Grid.Column="2" Content="&#xe711;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}"/>
+            <TextBox x:Name="FindTextBox" Margin="8,0" Height="30" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"/>
+            <Button Grid.Column="1" Content="&#xe711;" FontFamily="Segoe Fluent Icons" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}"/>
         </Grid>
 
         <!-- Virtual Machines -->
         <Border Grid.Row="2" Background="{DynamicResource SmokeFillColorDefaultBrush}">
-            <!-- Scrollable container for virtual machines + action button -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl Margin="10" ItemsSource="{Binding VirtualMachines}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </ScrollViewer>
+            <!-- Scrollable container for virtual machines -->
+            <ListBox ItemsSource="{Binding FilteredVirtualMachines}"
+                     Margin="10"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <!-- Removes default ListBox blue selection/focus highlights if you manage item layout inside DataTemplate -->
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,8" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <ContentPresenter />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
         </Border>
 
         <!-- Log Text -->
