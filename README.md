@@ -9,13 +9,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
 ### :heavy_check_mark: **Phase 4 — TimePicker UserControl (highest complexity)**
 ### :heavy_check_mark: **Phase 5 — Views (XAML)**
 ### :arrow_right: **Phase 6 — ViewModels**
- - :arrows_counterclockwise: **Update MainViewModel.cs:**
-	- Replace ```ICollectionView``` / ```CollectionViewSource``` / ```BindingOperations``` with a FilteredVMs ObservableCollection computed via LINQ
-	- Remove ```BindingOperations.EnableCollectionSynchronization```
-	- Replace ```Microsoft.Win32.OpenFileDialog``` / ```SaveFileDialog``` with ```StorageProvider.OpenFilePickerAsync``` / ```SaveFilePickerAsync``` (inject ```IStorageProvider``` or use a file picker service)
-	- Replace ```Application.Current?.Shutdown()``` with ```(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown()```
-	- Replace ```Application.Current?.MainWindow``` references with injected window reference or ```IClassicDesktopStyleApplicationLifetime.MainWindow```
- - **Update VirtualMachineViewModel.cs:**
+ - :heavy_check_mark: **Update MainViewModel.cs:**
+ - :arrows_counterclockwise: **Update VirtualMachineViewModel.cs:**
 	- Replace ```Microsoft.Win32.OpenFileDialog``` with StorageProvider API
 	- Replace AddNewHypervisorView/AddGuestOSView ```ShowDialog()``` calls with ```window.ShowDialog<T>(owner)``` returning ```Task<T>```
 	- Replace ```dialog.DialogResult == true``` check with typed return value
