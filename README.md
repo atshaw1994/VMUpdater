@@ -1,4 +1,4 @@
-# <img src="VMUpdater.ico" alt="Icon" width="32"/> VMUpdater
+# <img src="VMUpdater.ico" alt="Icon" width="32"/> VMUpdater 2.0
 
 This branch's purpose is to convert the project to use Avalonia UI instead of WPF to allow cross-platform compatibility. The project is still in development, and some features may not be fully implemented yet.
 
