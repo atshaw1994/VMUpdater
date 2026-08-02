@@ -2,6 +2,8 @@
 
 This branch's purpose is to convert the project to use Avalonia UI instead of WPF to allow cross-platform compatibility. The project is still in development, and some features may not be fully implemented yet.
 
+<img src="Screenshots/MainWindow.png" alt="Main Window" />
+
 ## Avalonia Migration Todo List
 ### :heavy_check_mark: **Phase 1 — Project Setup**
 ### :heavy_check_mark: **Phase 2 — App Entry Point & Bootstrapping**
