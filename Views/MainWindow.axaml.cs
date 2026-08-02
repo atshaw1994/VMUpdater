@@ -11,6 +11,11 @@ namespace VMUpdater.Views
     {
         private readonly MainViewModel _viewModel;
 
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
         // Accept the application's shared ViewModel via dependency injection
         public MainWindow(MainViewModel viewModel)
         {
