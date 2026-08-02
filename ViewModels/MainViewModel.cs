@@ -43,10 +43,7 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
 
-        public MainViewModel()
-        {
-
-        }
+        public MainViewModel() { }
 
         public MainViewModel(MainServicesContext services)
         {
