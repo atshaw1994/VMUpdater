@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewmodels="using:VMUpdater.ViewModels"
         xmlns:views="using:VMUpdater.Views"
+        xmlns:ic="using:FluentIcons.Avalonia"
         x:DataType="viewmodels:MainViewModel"
         x:Name="RootWindow"
         Closing="Window_Closing"
@@ -151,7 +152,7 @@
                             Margin="2"
                             IsVisible="{Binding !IsUpdating}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <PathIcon Data="M 12 2 A 10 10 0 1 0 22 12 A 10 10 0 0 0 12 2 Z" VerticalAlignment="Center"/>
+                            <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Filled" IconSize="Size12" />
                             <TextBlock Text="Update All" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

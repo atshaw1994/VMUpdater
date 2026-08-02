@@ -5,7 +5,7 @@
              RequestedThemeVariant="Default">
 
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme  />
 
         <!-- AddGlyphStyle for Icon TextBlocks -->
         <Style Selector="TextBlock.AddGlyphStyle">

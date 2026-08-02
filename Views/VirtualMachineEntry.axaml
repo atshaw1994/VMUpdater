@@ -1,9 +1,9 @@
 ﻿<UserControl x:Class="VMUpdater.Views.VirtualMachineEntry"
              xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
              xmlns:local="using:VMUpdater.Views"
              xmlns:vm="using:VMUpdater.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia"
              x:DataType="vm:VirtualMachineViewModel"
              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}">
     <Grid Margin="2">
@@ -58,7 +58,12 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Button Content="Browse..." Margin="0,0,8,0" Command="{Binding BrowseCommand}"/>
+                        <Button Margin="0,0,8,0" Command="{Binding BrowseCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size12" />
+                                <TextBlock Text="Browse..." VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <TextBox Grid.Column="1" Text="{Binding VMPath}"/>
                     </Grid>
                 </StackPanel>
@@ -136,14 +141,14 @@
                                 Command="{ReflectionBinding $parent[Window].DataContext.RemoveVirtualMachineCommand}"
                                 CommandParameter="{Binding}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <PathIcon Data="M 3 6 L 5 6 L 5 21 C 5 22.1 5.9 23 7 23 L 17 23 C 18.1 23 19 22.1 19 21 L 19 6 L 21 6 M 9 6 L 9 4 C 9 2.9 9.9 2 11 2 L 13 2 C 14.1 2 15 2.9 15 4 L 15 6" VerticalAlignment="Center"/>
+                                <ic:FluentIcon Icon="Delete" IconVariant="Regular" IconSize="Size12" />
                                 <TextBlock Text="Delete" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
                         <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="4" Command="{Binding UpdateNowCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <PathIcon Data="M 12 2 A 10 10 0 1 0 22 12 A 10 10 0 0 0 12 2 Z" VerticalAlignment="Center"/>
+                                <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Regular" IconSize="Size12" />
                                 <TextBlock Text="Update" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
