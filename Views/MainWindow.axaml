@@ -51,12 +51,27 @@
         <Grid Margin="8,0" HorizontalAlignment="Right" ClipToBounds="True">
             <!-- Search Button (fades/hides when search expands) -->
             <Button Height="30" 
+                    Cursor="Hand"
                     Command="{Binding ToggleFindRowCommand}" 
                     IsVisible="{Binding !IsFindRowVisible}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
                     <TextBlock Text="Search..." VerticalAlignment="Center"/>
                 </StackPanel>
+                <Button.Transitions>
+                    <Transitions>
+                        <!-- Smooth opacity fade on hover/unhover -->
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                    </Transitions>
+                </Button.Transitions>
+                <Button.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Opacity" Value="0.4" />
+                    </Style>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Opacity" Value="1.0" />
+                    </Style>
+                </Button.Styles>
             </Button>
 
             <!-- Expanding Search TextBox -->
