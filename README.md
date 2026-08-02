@@ -2,6 +2,9 @@
 
 A Windows desktop application that automates scheduled, headless system updates across multiple virtual machines — supporting VMware Workstation, VirtualBox, and QEMU.
 
+> [!TIP]
+> Version 2.0 is coming soon with added Linux and macOS(intel) support!
+
 <img src="Screenshots/MainWindow.png" alt="Main Window" />
 
 ## Overview
