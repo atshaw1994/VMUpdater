@@ -14,8 +14,8 @@ This branch's purpose is to convert the project to use Avalonia UI instead of WP
  - :heavy_check_mark: Build project and resolve any remaining compile errors
  - Run on Windows and verify UI renders correctly with Fluent theme
  - Test on Linux/macOS (or a Linux Docker container) to verify cross-platform functionality
- - Test tray icon behavior via H.NotifyIcon on each target platform
- - Test all dialogs (Add Hypervisor, Add Guest OS, About) open and close correctly with the new ShowDialog<T>() pattern
+ - :heavy_check_mark: Test tray icon behavior via H.NotifyIcon on each target platform
+ - :heavy_check_mark: Test all dialogs (Add Hypervisor, Add Guest OS, About) open and close correctly with the new ShowDialog<T>() pattern
 
 ## License
 
