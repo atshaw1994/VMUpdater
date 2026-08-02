@@ -2,10 +2,22 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
              xmlns:local="using:VMUpdater.Views"
-             xmlns:vm="using:VMUpdater.ViewModels"
+             xmlns:viewmodels="using:VMUpdater.ViewModels"
              xmlns:ic="using:FluentIcons.Avalonia"
-             x:DataType="vm:VirtualMachineViewModel"
-             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}">
+             x:DataType="viewmodels:VirtualMachineViewModel"
+             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+             MinWidth="621">
+             
+    <Design.DataContext>
+        <viewmodels:VirtualMachineViewModel 
+            DisplayName="New Virtual Machine"
+            VMPath="Path/To/VM"
+            Username="username"
+            Password="password"
+            ScheduleDay="Monday"
+            IsExpanded="True" />
+    </Design.DataContext>
+
     <Grid Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -16,9 +28,7 @@
                 HorizontalAlignment="Stretch" 
                 HorizontalContentAlignment="Right" 
                 Command="{Binding ToggleExpandCommand}">
-                <ic:FluentIcon Icon="ChevronDown" 
-                               IconVariant="Filled" 
-                               IconSize="Size12" />
+                <ic:FluentIcon Icon="ChevronDown" IconVariant="Filled" IconSize="Size12" />
         </Button>
 
         <ProgressBar x:Name="UpdateProgressBar"
@@ -51,22 +61,19 @@
                 BorderThickness="1,0,1,1"
                 CornerRadius="0,0,4,4">
             <StackPanel Margin="4,8,4,4">
-                <StackPanel Margin="0,0,0,2">
-                    <TextBlock Text="Path to virtual machine:"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button Margin="0,0,8,0" Command="{Binding BrowseCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size12" />
-                                <TextBlock Text="Browse..." VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <TextBox Grid.Column="1" Text="{Binding VMPath}"/>
-                    </Grid>
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Margin="0,0,8,0" Command="{Binding BrowseCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size12" />
+                            <TextBlock Text="Browse..." VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBox Grid.Column="1" PlaceholderText="Path/To/VM" Text="{Binding VMPath}"/>
+                </Grid>
 
                 <Grid Margin="0,2">
                     <Grid.RowDefinitions>
@@ -112,13 +119,13 @@
                               Margin="0,4"
                               HorizontalAlignment="Stretch"
                               SelectedValue="{Binding ScheduleDay}">
-                        <ComboBoxItem Content="Monday" />
-                        <ComboBoxItem Content="Tuesday" />
-                        <ComboBoxItem Content="Wednesday" />
-                        <ComboBoxItem Content="Thursday" />
-                        <ComboBoxItem Content="Friday" />
-                        <ComboBoxItem Content="Saturday" />
-                        <ComboBoxItem Content="Sunday" />
+                        <x:String>Monday</x:String>
+                        <x:String>Tuesday</x:String>
+                        <x:String>Wednesday</x:String>
+                        <x:String>Thursday</x:String>
+                        <x:String>Friday</x:String>
+                        <x:String>Saturday</x:String>
+                        <x:String>Sunday</x:String>
                     </ComboBox>
 
                     <TextBlock Text="at" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>

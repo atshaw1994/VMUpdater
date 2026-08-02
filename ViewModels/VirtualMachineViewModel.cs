@@ -48,6 +48,8 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<GuestOSModel> GuestOSTypes => _ctx.GuestOSTypes;
         public ObservableCollection<HypervisorModel> Hypervisors => _ctx.Hypervisors;
 
+        public VirtualMachineViewModel() { }
+
         public VirtualMachineViewModel(VirtualMachineModel model, VMViewModelContext context)
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
@@ -239,9 +241,15 @@ namespace VMUpdater.ViewModels
 
         public string VMPath
         {
-            get => Model.VMPath;
+            get
+            {
+                if (Model == null) return "Path/To/VM";
+                return Model.VMPath;
+            }
             set
             {
+                if (Model == null) return;
+
                 if (SetProperty(Model.VMPath, value, Model, (m, val) => m.VMPath = val))
                 {
                     DisplayName = !string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
@@ -258,6 +266,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnUsernameChanged(string value)
         {
+            if (Model == null) return;
             Model.Username = value;
             _ = SaveAsync();
         }
@@ -267,6 +276,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnPasswordChanged(string value)
         {
+            if (Model == null) return;
             Model.Password = value;
             _ = SaveAsync();
         }
@@ -276,6 +286,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnScheduleDayChanged(string value)
         {
+            if (Model == null) return;
             Model.ScheduleDay = value;
             CalculateNextScheduledUpdate();
             _ = SaveAsync();
@@ -297,7 +308,7 @@ namespace VMUpdater.ViewModels
         partial void OnIsExpandedChanged(bool value)
         {
             ExpandedIcon = value ? "\uE70E" : "\uE70D";
-            if (value) _ctx.OnExpanded?.Invoke(this);
+            if (value && _ctx != null) _ctx.OnExpanded?.Invoke(this);
         }
 
         [ObservableProperty]
@@ -315,15 +326,27 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        public string LastUpdateDisplayText =>
-            Model.LastUpdate == DateTime.MinValue
+        public string LastUpdateDisplayText
+        {
+            get
+            {
+                if (Model == null) return "Last Update: Never";
+                return Model.LastUpdate == DateTime.MinValue
                 ? "Last Update: Never"
                 : $"Last Update: {Model.LastUpdate:dddd, MMMM d 'at' hh:mm tt}";
+            }
+        }
 
-        public string NextUpdateDisplayText =>
-            Model.NextUpdate == DateTime.MinValue
+        public string NextUpdateDisplayText
+        {
+            get
+            {
+                if (Model == null) return "Next Update: Never";
+                return Model.NextUpdate == DateTime.MinValue
                 ? "Next Update: Never"
                 : $"Next Update: {Model.NextUpdate:dddd, MMMM d 'at' hh:mm tt}";
+            }
+        }
 
         #endregion
 
