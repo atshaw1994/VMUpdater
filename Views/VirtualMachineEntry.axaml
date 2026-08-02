@@ -43,9 +43,10 @@
 
         <Border x:Name="DetailsPanel"
                 Grid.Row="1"
-                Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                Background="{DynamicResource SystemControlPageBackgroundMediumAltMediumBrush}" 
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
                 IsVisible="{Binding IsExpanded}"
+                Opacity=".8"
                 Margin="16,0,3,8"
                 BorderThickness="1,0,1,1"
                 CornerRadius="0,0,4,4">
@@ -83,6 +84,7 @@
                     <TextBlock Text="Hypervisor:" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" 
                               Margin="0,4" 
+                              HorizontalAlignment="Stretch"
                               ItemsSource="{Binding Hypervisors}" 
                               SelectedItem="{Binding HypervisorType}"
                               DisplayMemberBinding="{Binding Name}"/>
@@ -91,6 +93,7 @@
                     <ComboBox x:Name="GuestOSComboBox"
                               Grid.Column="3"
                               Margin="0,4"
+                              HorizontalAlignment="Stretch"
                               ItemsSource="{Binding GuestOSTypes}"
                               SelectedItem="{Binding GuestOSType}"
                               DisplayMemberBinding="{Binding Name}"/>
@@ -107,6 +110,7 @@
                               Grid.Column="1" 
                               Grid.Row="2"
                               Margin="0,4"
+                              HorizontalAlignment="Stretch"
                               SelectedValue="{Binding ScheduleDay}">
                         <ComboBoxItem Content="Monday" />
                         <ComboBoxItem Content="Tuesday" />

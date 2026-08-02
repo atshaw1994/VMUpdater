@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using System.Diagnostics;
 using VMUpdater.ViewModels;
 
 namespace VMUpdater.Views
