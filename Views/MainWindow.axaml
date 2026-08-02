@@ -23,105 +23,174 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Menu -->
-        <Menu Grid.Row="0">
-            <MenuItem Header="File" Width="64">
-                <MenuItem Header="Add New" Width="256">
-                    <MenuItem Header="Add New Machine" Width="256" Command="{Binding AddVirtualMachineCommand}"/>
-                    <MenuItem Header="Add New Hypervisor" Width="256" Command="{Binding AddHypervisorCommand}"/>
-                    <MenuItem Header="Add New Guest OS Type" Width="256" Command="{Binding AddGuestOSCommand}"/>
-                </MenuItem>
-                <MenuItem Header="Import" Width="256" Command="{Binding ImportCommand}"/>
-                <MenuItem Header="Export" Width="256" Command="{Binding ExportCommand}"/>
-                <MenuItem Header="Find" Width="256" Command="{Binding ToggleFindRowCommand}"/>
-                <Separator/>
-                <MenuItem Header="Show Log" Width="256" Command="{Binding ShowLogCommand}"/>
-                <Separator/>
-                <MenuItem Header="About" Width="256" Command="{Binding AboutCommand}"/>
-                <MenuItem Header="Exit" Width="256" Command="{Binding ExitCommand}"/>
-            </MenuItem>
-        </Menu>
-                    
-        <Grid Margin="8,0" HorizontalAlignment="Right" ClipToBounds="True">
-            <!-- Search Button (fades/hides when search expands) -->
-            <Button Height="30" 
-                    Cursor="Hand"
-                    Command="{Binding ToggleFindRowCommand}" 
-                    IsVisible="{Binding !IsFindRowVisible}">
+        <!-- Toolbar -->
+        <Grid Margin="4,4,4,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.Styles>
+                <!-- Ensures SplitButton and regular Buttons share identical height & vertical alignment -->
+                <Style Selector="SplitButton, Button">
+                    <Setter Property="Height" Value="32"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+            </Grid.Styles>
+
+            <!-- Add Machine -->
+            <SplitButton Command="{Binding AddVirtualMachineCommand}" Margin="0,0,2,0" ToolTip.Tip="Add Machine">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
-                    <TextBlock Text="Search..." VerticalAlignment="Center"/>
+                    <ic:FluentIcon Icon="DocumentAdd" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Add Machine" VerticalAlignment="Center" IsVisible="False"/>
                 </StackPanel>
-                <Button.Transitions>
-                    <Transitions>
-                        <!-- Smooth opacity fade on hover/unhover -->
-                        <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
-                    </Transitions>
-                </Button.Transitions>
-                <Button.Styles>
-                    <Style Selector="Button">
-                        <Setter Property="Opacity" Value="0.4" />
-                    </Style>
-                    <Style Selector="Button:pointerover">
-                        <Setter Property="Opacity" Value="1.0" />
-                    </Style>
-                </Button.Styles>
+    
+                <SplitButton.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                        <MenuItem Header="Add New Hypervisor" 
+                                  Command="{Binding AddHypervisorCommand}">
+                            <MenuItem.Icon>
+                                <ic:FluentIcon Icon="Server" IconSize="Size16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+            
+                        <MenuItem Header="Add New Guest OS Type" 
+                                  Command="{Binding AddGuestOSCommand}">
+                            <MenuItem.Icon>
+                                <ic:FluentIcon Icon="Desktop" IconSize="Size16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuFlyout>
+                </SplitButton.Flyout>
+            </SplitButton>
+
+            <!-- Import -->
+            <Button Grid.Column="1" Command="{Binding ImportCommand}" Margin="2,0" ToolTip.Tip="Import">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="DocumentArrowDown" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Import" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
             </Button>
 
-            <!-- Expanding Search TextBox -->
-            <TextBox x:Name="FindTextBox"
-                     Height="30"
-                     Text="{Binding SearchText, Mode=TwoWay}"
-                     PlaceholderText="Search..."
-                     IsVisible="{Binding IsFindRowVisible}">
-        
-                <!-- Smooth Width Transition -->
-                <TextBox.Transitions>
-                    <Transitions>
-                        <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseOut"/>
-                    </Transitions>
-                </TextBox.Transitions>
+            <!-- Export -->
+            <Button Grid.Column="2" Command="{Binding ExportCommand}" Margin="2,0" ToolTip.Tip="Export">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="DocumentArrowUp" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Export" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
 
-                <!-- Dynamic Width based on state -->
-                <TextBox.Styles>
-                    <Style Selector="TextBox[IsVisible=True]">
-                        <Setter Property="Width" Value="384"/>
-                    </Style>
-                    <Style Selector="TextBox[IsVisible=False]">
-                        <Setter Property="Width" Value="0"/>
-                    </Style>
-                </TextBox.Styles>
+            <!-- Log -->
+            <Button Grid.Column="3" Command="{Binding ShowLogCommand}" Margin="2,0" ToolTip.Tip="Show Log">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="Document" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Log" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
 
-                <TextBox.InnerRightContent>
-                    <Button Command="{Binding ToggleFindRowCommand}"
-                            Width="22" Height="22"
-                            Margin="0,0,4,0"
-                            Padding="0"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            VerticalAlignment="Center"
-                            HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Cursor="Hand">
-                        <Button.Styles>
-                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#20000000" />
-                                <Setter Property="CornerRadius" Value="4" />
-                            </Style>
-                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#40000000" />
-                            </Style>
-                        </Button.Styles>
-                        <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12"/>
-                    </Button>
-                </TextBox.InnerRightContent>
-            </TextBox>
+            <!-- About -->
+            <Button Grid.Column="4" Command="{Binding AboutCommand}" Margin="2,0" ToolTip.Tip="About">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="QuestionCircle" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="About" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Search -->
+            <Grid Grid.Column="5" Margin="2,0,0,0" VerticalAlignment="Center" ClipToBounds="True">
+                <!-- Collapsed Search Button -->
+                <Button Command="{Binding ToggleFindRowCommand}" 
+                        Height="32"
+                        Cursor="Hand"
+                        HorizontalAlignment="Right"
+                        IsVisible="{Binding !IsFindRowVisible}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
+                        <TextBlock Text="Search..." VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                        </Transitions>
+                    </Button.Transitions>
+                    <Button.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Style>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <!-- Expanded Full-Width Search TextBox (Sliding via RenderTransform) -->
+                <TextBox x:Name="FindTextBox"
+                         Height="32"
+                         HorizontalAlignment="Stretch"
+                         RenderTransformOrigin="100%,50%"
+                         Text="{Binding SearchText, Mode=TwoWay}"
+                         PlaceholderText="Search..."
+                         IsVisible="{Binding IsFindRowVisible}">
+    
+                    <TextBox.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1" />
+                    </TextBox.RenderTransform>
+
+                    <TextBox.Transitions>
+                        <Transitions>
+                            <!-- Smooth Transform Transition -->
+                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                        </Transitions>
+                    </TextBox.Transitions>
+
+                    <TextBox.Styles>
+                        <!-- Visible: Full Scale -->
+                        <Style Selector="TextBox[IsVisible=True]">
+                            <Setter Property="RenderTransform" Value="scaleX(1)" />
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                        <!-- Hidden: Scaled to 0 from Right Origin -->
+                        <Style Selector="TextBox[IsVisible=False]">
+                            <Setter Property="RenderTransform" Value="scaleX(0)" />
+                            <Setter Property="Opacity" Value="0.0" />
+                        </Style>
+                    </TextBox.Styles>
+
+                    <TextBox.InnerRightContent>
+                        <Button Command="{Binding ToggleFindRowCommand}"
+                                Width="22" Height="22"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                Cursor="Hand">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#20000000" />
+                                    <Setter Property="CornerRadius" Value="4" />
+                                </Style>
+                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#40000000" />
+                                </Style>
+                            </Button.Styles>
+                            <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12"/>
+                        </Button>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+            </Grid>
         </Grid>
 
         <!-- Virtual Machines List -->
