@@ -3,21 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:helpers="clr-namespace:VMUpdater.Helpers"
-        xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
-        xmlns:views="clr-namespace:VMUpdater.Views"
-        xmlns:local="clr-namespace:VMUpdater"
-        x:DataType="viewmodels:MainWindowViewModel"
+        xmlns:viewmodels="using:VMUpdater.ViewModels"
+        xmlns:views="using:VMUpdater.Views"
+        x:DataType="viewmodels:MainViewModel"
+        x:Name="RootWindow"
         Closing="Window_Closing"
         RequestedThemeVariant="Default"
         mc:Ignorable="d"
         Title="VMUpdater" Height="450" Width="800">
-    <Window.Resources>
-        <!-- Converted x:Type syntax to DataType="viewmodels:VirtualMachineViewModel" -->
+    <Window.DataTemplates>
+        <!-- Fixed: Changed VirtualMachineEntryViewModel to VirtualMachineViewModel -->
         <DataTemplate DataType="viewmodels:VirtualMachineViewModel">
             <views:VirtualMachineEntry />
         </DataTemplate>
-    </Window.Resources>
+    </Window.DataTemplates>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -46,7 +45,7 @@
             </MenuItem>
         </Menu>
 
-        <!-- Find Row (Replaced Style.Triggers/DataTrigger with Avalonia Transitions & Styles) -->
+        <!-- Find Row -->
         <Grid Grid.Row="1" ClipToBounds="True" Height="0">
             <Grid.Transitions>
                 <Transitions>
@@ -67,14 +66,12 @@
             </Grid.ColumnDefinitions>
 
             <TextBox x:Name="FindTextBox" Margin="8,0" Height="30" Text="{Binding SearchText}"/>
-            <!-- Replaced Segoe Fluent Icons Unicode with PathIcon / Standard Geometry or System Icon -->
             <Button Grid.Column="1" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}">
                 <PathIcon Data="M 0 0 L 10 10 M 10 0 L 0 10" Width="10" Height="10" VerticalAlignment="Center"/>
             </Button>
         </Grid>
 
-        <!-- Virtual Machines -->
-        <!-- Replaced WPF DynamicResource 'SmokeFillColorDefaultBrush' with Avalonia 'SystemControlBackgroundChromeMediumLowBrush' -->
+        <!-- Virtual Machines List -->
         <Border Grid.Row="2" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
             <ListBox ItemsSource="{Binding FilteredVirtualMachines}"
                      Margin="10"
@@ -87,7 +84,7 @@
                         <VirtualizingStackPanel />
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
-                <ListBox.ItemContainerStyle>
+                <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Padding" Value="0" />
                         <Setter Property="Margin" Value="0,0,0,8" />
@@ -99,7 +96,7 @@
                             </ControlTemplate>
                         </Setter>
                     </Style>
-                </ListBox.ItemContainerStyle>
+                </ListBox.Styles>
             </ListBox>
         </Border>
 
@@ -130,12 +127,12 @@
                            Margin="8,0"/>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <TextBox Text="{Binding LogText}" VerticalScrollBarVisibility="Auto"/>
+                    <TextBox Text="{Binding LogText}"/>
                 </ScrollViewer>
             </Grid>
         </Border>
 
-        <!-- Status Bar (Replaced WPF StatusBar/StatusBarItem with Grid/StackPanel footer) -->
+        <!-- Status Bar -->
         <Border Grid.Row="3" 
                 Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
@@ -147,16 +144,13 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Left side: Status Message -->
                 <TextBlock Grid.Column="0" 
                            Text="{Binding StatusMessage}" 
                            d:Text="Ready." 
                            VerticalAlignment="Center" 
                            Margin="4,0,0,0"/>
 
-                <!-- Right side: Update All / Progress Bar toggle -->
                 <Grid Grid.Column="1" Margin="0,0,4,0">
-                    <!-- Show "Update All" when IsUpdating is false -->
                     <Button Command="{Binding UpdateAllCommand}"
                             Padding="10,3"
                             Margin="2"
@@ -167,7 +161,6 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Show Progress Bar when IsUpdating is true -->
                     <StackPanel Orientation="Horizontal" 
                                 VerticalAlignment="Center"
                                 IsVisible="{Binding IsUpdating}">

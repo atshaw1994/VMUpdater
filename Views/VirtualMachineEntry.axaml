@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:VMUpdater.Views"
-             xmlns:vm="clr-namespace:VMUpdater.ViewModels"
+             xmlns:local="using:VMUpdater.Views"
+             xmlns:vm="using:VMUpdater.ViewModels"
              x:DataType="vm:VirtualMachineViewModel"
              Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
              mc:Ignorable="d" 
@@ -46,7 +46,6 @@
             </TextBlock.Text>
         </TextBlock>
 
-        <!-- Replaced Style.Triggers/DataTrigger with direct IsVisible binding -->
         <Border x:Name="DetailsPanel"
                 Grid.Row="1"
                 Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
@@ -104,13 +103,11 @@
 
                     <TextBlock Text="Every" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
 
-                    <!-- Fixed ComboBox SelectedValue string binding -->
                     <ComboBox x:Name="ScheduleComboBox" 
                               Grid.Column="1" 
                               Grid.Row="2"
                               Margin="0,4"
-                              SelectedValue="{Binding ScheduleDay}"
-                              SelectedValueBinding="{Binding Content, DataType=ComboBoxItem}">
+                              SelectedValue="{Binding ScheduleDay}">
                         <ComboBoxItem Content="Monday" />
                         <ComboBoxItem Content="Tuesday" />
                         <ComboBoxItem Content="Wednesday" />
@@ -139,9 +136,8 @@
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
-                        <!-- Replaced RelativeSource FindAncestor x:Type ItemsControl with Avalonia's ItemsControl ancestor syntax -->
                         <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="4"
-                                Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).RemoveVirtualMachineCommand}"
+                                Command="{ReflectionBinding $parent[Window].DataContext.RemoveVirtualMachineCommand}"
                                 CommandParameter="{Binding}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <PathIcon Data="M 3 6 L 5 6 L 5 21 C 5 22.1 5.9 23 7 23 L 17 23 C 18.1 23 19 22.1 19 21 L 19 6 L 21 6 M 9 6 L 9 4 C 9 2.9 9.9 2 11 2 L 13 2 C 14.1 2 15 2.9 15 4 L 15 6" VerticalAlignment="Center"/>

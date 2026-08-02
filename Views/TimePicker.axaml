@@ -10,15 +10,25 @@
 
         <ComboBox ItemsSource="{Binding Hours, ElementName=Root}"
                   SelectedItem="{Binding SelectedHour, ElementName=Root}"
-                  ItemStringFormat="D2" 
-                  Margin="0,0,5,0" />
+                  Margin="0,0,5,0"  >
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding StringFormat='{}{0:D2}'}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
 
         <TextBlock Text=":" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="Bold"/>
 
         <ComboBox ItemsSource="{Binding Minutes, ElementName=Root}"
                   SelectedItem="{Binding SelectedMinute, ElementName=Root}"
-                  ItemStringFormat="D2" 
-                  Margin="0,0,5,0" />
+                  Margin="0,0,5,0" >
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding StringFormat='{}{0:D2}'}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
 
         <ComboBox ItemsSource="{Binding Meridians, ElementName=Root}"
                   SelectedItem="{Binding SelectedMeridian, ElementName=Root}" />

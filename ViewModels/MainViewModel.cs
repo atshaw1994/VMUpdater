@@ -319,6 +319,12 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
+        private async Task AddGuestOSAsync()
+        {
+            
+        }
+
+        [RelayCommand]
         private async Task RemoveVirtualMachineAsync(VirtualMachineViewModel? itemToRemove)
         {
             if (itemToRemove != null)

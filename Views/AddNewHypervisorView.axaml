@@ -70,7 +70,7 @@
 
                 <!-- End VM Argument -->
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="End VM Argument" VerticalAlignment="Center" Margin="0,6"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EndVMArgument}" 
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding StopVMArgument}" 
                          ToolTip.Tip="CLI arguments to shutdown or save state" Margin="0,4" Padding="4,3"/>
 
                 <!-- Run Script Argument -->
