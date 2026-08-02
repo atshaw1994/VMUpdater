@@ -22,6 +22,7 @@ namespace VMUpdater.Views
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
+            TransparencyLevelHint = new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.AcrylicBlur };
         }
 
         private void LogTextBox_Loaded(object sender, RoutedEventArgs e) => ScrollTextBoxToEnd(sender);

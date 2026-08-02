@@ -16,10 +16,9 @@
                 HorizontalAlignment="Stretch" 
                 HorizontalContentAlignment="Right" 
                 Command="{Binding ToggleExpandCommand}">
-            <PathIcon Data="M 0 0 L 5 5 L 10 0"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
-                      HorizontalAlignment="Right" 
-                      VerticalAlignment="Center"/>
+                <ic:FluentIcon Icon="ChevronDown" 
+                               IconVariant="Filled" 
+                               IconSize="Size12" />
         </Button>
 
         <ProgressBar x:Name="UpdateProgressBar"

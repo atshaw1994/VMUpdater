@@ -7,6 +7,8 @@
         x:DataType="viewmodels:MainViewModel"
         x:Name="RootWindow"
         Closing="Window_Closing"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        Background="Transparent"
         RequestedThemeVariant="Default"
         Title="VMUpdater" Height="450" Width="800">
     <Window.DataTemplates>
@@ -41,6 +43,16 @@
                 <MenuItem Header="Exit" Width="256" Command="{Binding ExitCommand}"/>
             </MenuItem>
         </Menu>
+
+        <Button HorizontalAlignment="Right" 
+                Margin="0,4,4,0" 
+                Padding="10,3" 
+                Command="{Binding ShowLogCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <ic:SymbolIcon Symbol="Document" IconVariant="Regular" FontSize="16" />
+                <TextBlock Text="Log" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
 
         <!-- Find Row -->
         <Grid Grid.Row="1" ClipToBounds="True" Height="0">
@@ -100,6 +112,7 @@
         <!-- Log Text -->
         <Border Grid.Row="2" 
                 Background="Black"
+                Margin="0,-40,0,0"
                 IsVisible="{Binding IsLogVisible}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -108,18 +121,16 @@
                 </Grid.RowDefinitions>
 
                 <Button Height="30" 
-                        HorizontalAlignment="Stretch" 
+                        HorizontalAlignment="Right" 
                         HorizontalContentAlignment="Right"
                         Command="{Binding ToggleLogCommand}">
-                    <PathIcon Data="M 0 0 L 5 5 L 10 0" 
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
-                              HorizontalAlignment="Right" 
-                              VerticalAlignment="Center"/>
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12" />
                 </Button>
 
                 <TextBlock Text="Log" 
                            IsHitTestVisible="False" 
                            FontSize="16" 
+                           Foreground="White"
                            VerticalAlignment="Center" 
                            Margin="8,0"/>
 
@@ -134,7 +145,7 @@
                 Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="4,2">
+                Padding="4,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

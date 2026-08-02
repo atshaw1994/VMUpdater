@@ -28,6 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="FluentAvaloniaUI" Version="3.0.2" />
 		<PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
 	</ItemGroup>
 

@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using FluentAvalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using VMUpdater.Services;
 using VMUpdater.Services.Abstractions;
@@ -26,6 +27,12 @@ namespace VMUpdater
 
             _viewModel = Services.GetRequiredService<MainViewModel>();
             DataContext = _viewModel; // enables TrayIcon XAML bindings
+
+            var faTheme = new FluentAvaloniaTheme
+            {
+                PreferUserAccentColor = true
+            };
+            Styles.Add(faTheme);
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
