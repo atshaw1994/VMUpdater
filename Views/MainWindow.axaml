@@ -1,0 +1,297 @@
+﻿<Window x:Class="VMUpdater.Views.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewmodels="using:VMUpdater.ViewModels"
+        xmlns:views="using:VMUpdater.Views"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        x:DataType="viewmodels:MainViewModel"
+        x:Name="RootWindow"
+        Closing="Window_Closing"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        Background="Transparent"
+        RequestedThemeVariant="Default"
+        Title="VMUpdater" Height="450" Width="800"
+        MinWidth="650" MinHeight="400">
+    <Window.DataTemplates>
+        <DataTemplate DataType="viewmodels:VirtualMachineViewModel">
+            <views:VirtualMachineEntry />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <Design.DataContext>
+        <viewmodels:MainViewModel IsFindRowVisible="False" SearchText="" />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Grid Margin="8,8,8,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.Styles>
+                <!-- Ensures SplitButton and regular Buttons share identical height & vertical alignment -->
+                <Style Selector="SplitButton, Button">
+                    <Setter Property="Height" Value="32"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+            </Grid.Styles>
+
+            <!-- Add Machine -->
+            <SplitButton Command="{Binding AddVirtualMachineCommand}" Margin="0,0,2,0" ToolTip.Tip="Add Machine">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="DocumentAdd" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Add Machine" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+    
+                <SplitButton.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                        <MenuItem Header="Add New Hypervisor" 
+                                  Command="{Binding AddHypervisorCommand}">
+                            <MenuItem.Icon>
+                                <ic:FluentIcon Icon="Server" IconSize="Size16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+            
+                        <MenuItem Header="Add New Guest OS Type" 
+                                  Command="{Binding AddGuestOSCommand}">
+                            <MenuItem.Icon>
+                                <ic:FluentIcon Icon="Desktop" IconSize="Size16" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuFlyout>
+                </SplitButton.Flyout>
+            </SplitButton>
+
+            <!-- Import -->
+            <Button Grid.Column="1" Command="{Binding ImportCommand}" Margin="2,0" ToolTip.Tip="Import">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="DocumentArrowDown" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Import" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Export -->
+            <Button Grid.Column="2" Command="{Binding ExportCommand}" Margin="2,0" ToolTip.Tip="Export">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="DocumentArrowUp" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Export" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Log -->
+            <Button Grid.Column="3" Command="{Binding ShowLogCommand}" Margin="2,0" ToolTip.Tip="Show Log">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="Document" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="Log" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
+
+            <!-- About -->
+            <Button Grid.Column="4" Command="{Binding AboutCommand}" Margin="2,0" ToolTip.Tip="About">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="QuestionCircle" IconVariant="Filled" IconSize="Size16" />
+                    <TextBlock Text="About" VerticalAlignment="Center" IsVisible="False"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Search -->
+            <Grid Grid.Column="5" Margin="2,0,0,0" VerticalAlignment="Center" ClipToBounds="True">
+                <!-- Collapsed Search Button -->
+                <Button Command="{Binding ToggleFindRowCommand}" 
+                        Height="32"
+                        Cursor="Hand"
+                        HorizontalAlignment="Right"
+                        IsVisible="{Binding !IsFindRowVisible}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
+                        <TextBlock Text="Search..." VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                        </Transitions>
+                    </Button.Transitions>
+                    <Button.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Style>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <!-- Expanded Full-Width Search TextBox (Sliding via RenderTransform) -->
+                <TextBox x:Name="FindTextBox"
+                         Height="32"
+                         HorizontalAlignment="Stretch"
+                         RenderTransformOrigin="100%,50%"
+                         Text="{Binding SearchText, Mode=TwoWay}"
+                         PlaceholderText="Search..."
+                         IsVisible="{Binding IsFindRowVisible}">
+    
+                    <TextBox.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1" />
+                    </TextBox.RenderTransform>
+
+                    <TextBox.Transitions>
+                        <Transitions>
+                            <!-- Smooth Transform Transition -->
+                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                        </Transitions>
+                    </TextBox.Transitions>
+
+                    <TextBox.Styles>
+                        <!-- Visible: Full Scale -->
+                        <Style Selector="TextBox[IsVisible=True]">
+                            <Setter Property="RenderTransform" Value="scaleX(1)" />
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                        <!-- Hidden: Scaled to 0 from Right Origin -->
+                        <Style Selector="TextBox[IsVisible=False]">
+                            <Setter Property="RenderTransform" Value="scaleX(0)" />
+                            <Setter Property="Opacity" Value="0.0" />
+                        </Style>
+                    </TextBox.Styles>
+
+                    <TextBox.InnerRightContent>
+                        <Button Command="{Binding ToggleFindRowCommand}"
+                                Width="22" Height="22"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                Cursor="Hand">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#20000000" />
+                                    <Setter Property="CornerRadius" Value="4" />
+                                </Style>
+                                <Style Selector="Button:pressed /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#40000000" />
+                                </Style>
+                            </Button.Styles>
+                            <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12"/>
+                        </Button>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+            </Grid>
+        </Grid>
+
+        <!-- Virtual Machines List -->
+        <Border Grid.Row="2" Margin="0,8,0,0" Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+            <ListBox ItemsSource="{Binding FilteredVirtualMachines}"
+                     Margin="10,10,4,10"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,16,8" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Template">
+                            <ControlTemplate>
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                            </ControlTemplate>
+                        </Setter>
+                    </Style>
+                </ListBox.Styles>
+            </ListBox>
+        </Border>
+
+        <!-- Log Text -->
+        <Border Grid.Row="2" 
+                Margin="0,8,0,0"
+                Background="Black"
+                IsVisible="{Binding IsLogVisible}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Height="30" 
+                        HorizontalAlignment="Right" 
+                        HorizontalContentAlignment="Right"
+                        Command="{Binding ToggleLogCommand}">
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12" />
+                </Button>
+
+                <TextBlock Text="Log" 
+                           IsHitTestVisible="False" 
+                           FontSize="16" 
+                           Foreground="White"
+                           VerticalAlignment="Center" 
+                           Margin="8,0"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding LogText}"/>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="3" 
+                Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="4,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding StatusMessage}" 
+                           VerticalAlignment="Center" 
+                           Margin="16,0,0,0"/>
+
+                <Grid Grid.Column="1" Margin="0,0,4,0">
+                    <Button Command="{Binding UpdateAllCommand}"
+                            Padding="10,3"
+                            Margin="2"
+                            IsVisible="{Binding !IsUpdating}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Filled" IconSize="Size12" />
+                            <TextBlock Text="Update All" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" 
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding IsUpdating}">
+                        <ProgressBar Value="{Binding UpdateProgress}" Width="150" Minimum="0" Maximum="100"/>
+                        <TextBlock Text="{Binding UpdateProgress, StringFormat={}{0:0}%}" 
+                                   Margin="8,0,4,0" 
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

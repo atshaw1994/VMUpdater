@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+﻿using Avalonia.Controls;
 
 namespace VMUpdater.Views
 {
@@ -7,9 +7,6 @@ namespace VMUpdater.Views
     /// </summary>
     public partial class VirtualMachineEntry : UserControl
     {
-        public VirtualMachineEntry()
-        {
-            InitializeComponent();
-        }
+        public VirtualMachineEntry() => InitializeComponent();
     }
 }

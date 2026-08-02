@@ -1,31 +1,23 @@
 ﻿// VMUpdater - Automated headless VM update scheduler
-// Copyright (C) 2025  Aaron Shaw
+// Copyright (C) 2025 Aaron Shaw
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
-using System.Windows;
-using System.Windows.Data;
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
@@ -47,16 +39,15 @@ namespace VMUpdater.ViewModels
         private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
 
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; } = [];
+        public ObservableCollection<VirtualMachineViewModel> FilteredVirtualMachines { get; } = [];
         public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
-        public event Action<string>? OnTooltipRefreshRequested;
 
-        // Primary Dependency Injection Constructor
+        public MainViewModel() { }
+
         public MainViewModel(MainServicesContext services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
-
-            BindingOperations.EnableCollectionSynchronization(VirtualMachines, new object());
 
             string logFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
             if (!Directory.Exists(logFolder))
@@ -67,14 +58,6 @@ namespace VMUpdater.ViewModels
 
             _ = InitializeAsync();
 
-            FilteredVirtualMachines = CollectionViewSource.GetDefaultView(VirtualMachines);
-            FilteredVirtualMachines.Filter = FilterVirtualMachines;
-
-            // Optional: Keep UI sorted automatically by Name
-            FilteredVirtualMachines.SortDescriptions.Add(
-                new SortDescription(nameof(VirtualMachineViewModel.DisplayName), ListSortDirection.Ascending)
-            );
-
             LogMessage("Logging profile initialized.");
         }
 
@@ -82,9 +65,7 @@ namespace VMUpdater.ViewModels
 
         [ObservableProperty]
         public partial string SearchText { get; set; } = string.Empty;
-        partial void OnSearchTextChanged(string value) => FilteredVirtualMachines?.Refresh();
-
-        public ICollectionView FilteredVirtualMachines { get; private set; }
+        partial void OnSearchTextChanged(string value) => RefreshFilteredMachines();
 
         [ObservableProperty]
         public partial bool IsLogVisible { get; set; } = false;
@@ -100,8 +81,6 @@ namespace VMUpdater.ViewModels
         [NotifyCanExecuteChangedFor(nameof(UpdateAllCommand))]
         public partial bool IsUpdating { get; set; } = false;
 
-        partial void OnIsUpdatingChanged(bool value) => OnTooltipRefreshRequested?.Invoke(TrayToolTipText);
-
         [ObservableProperty]
         public partial string LogText { get; set; } = string.Empty;
 
@@ -116,36 +95,46 @@ namespace VMUpdater.ViewModels
         #region Commands
 
         [RelayCommand]
-        private static void About()
+        private static async Task AboutAsync()
         {
-            var aboutWindow = new AboutDialog
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is { } mainWindow)
             {
-                Owner = Application.Current?.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-            aboutWindow.ShowDialog();
+                var aboutWindow = new AboutDialog();
+                await aboutWindow.ShowDialog(mainWindow);
+            }
         }
 
         [RelayCommand]
-        private void Export()
+        private async Task ExportAsync()
         {
-            var dialog = new SaveFileDialog
-            {
-                Filter = "Zip Files (*.zip)|*.zip",
-                Title = "Export Configuration Package",
-                FileName = "VMUpdaterPackage.zip"
-            };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
 
-            if (dialog.ShowDialog() != true) return;
+            var topLevel = TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Export Configuration Package",
+                SuggestedFileName = "VMUpdaterPackage.zip",
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("Zip Files") { Patterns = ["*.zip"] }
+                }
+            });
+
+            if (file == null) return;
+
+            string filePath = file.Path.LocalPath;
 
             try
             {
-                if (File.Exists(dialog.FileName))
+                if (File.Exists(filePath))
                 {
-                    File.Delete(dialog.FileName);
+                    File.Delete(filePath);
                 }
 
-                using (var zipArchive = ZipFile.Open(dialog.FileName, ZipArchiveMode.Create))
+                using (var zipArchive = ZipFile.Open(filePath, ZipArchiveMode.Create))
                 {
                     var options = new JsonSerializerOptions { WriteIndented = true };
 
@@ -167,7 +156,7 @@ namespace VMUpdater.ViewModels
                     }
                 }
 
-                LogMessage($"Successfully exported package to {dialog.FileName}.");
+                LogMessage($"Successfully exported package to {filePath}.");
             }
             catch (Exception ex)
             {
@@ -176,22 +165,35 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
-        private async Task Import()
+        private async Task ImportAsync()
         {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Zip Files (*.zip)|*.zip",
-                Title = "Import Configuration Package"
-            };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
 
-            if (dialog.ShowDialog() != true) return;
+            var topLevel = TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Import Configuration Package",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Zip Files") { Patterns = new[] { "*.zip" } }
+                }
+            });
+
+            var file = files.FirstOrDefault();
+            if (file == null) return;
+
+            string filePath = file.Path.LocalPath;
 
             try
             {
                 List<VirtualMachineModel> importedMachines = [];
                 List<HypervisorModel> importedHypervisors = [];
 
-                using (var zipArchive = ZipFile.OpenRead(dialog.FileName))
+                using (var zipArchive = ZipFile.OpenRead(filePath))
                 {
                     // 1. Read Hypervisors first
                     var hypervisorEntry = zipArchive.GetEntry("hypervisors.json");
@@ -244,7 +246,8 @@ namespace VMUpdater.ViewModels
                     }
                 }
 
-                LogMessage($"Import complete. Added {newMachinesCount} new machines and {newHypervisorsCount} new hypervisors from {dialog.FileName}.");
+                RefreshFilteredMachines();
+                LogMessage($"Import complete. Added {newMachinesCount} new machines and {newHypervisorsCount} new hypervisors from {filePath}.");
             }
             catch (Exception ex)
             {
@@ -253,12 +256,12 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
-        private static void Exit() => Application.Current?.Shutdown();
+        private static void Exit() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
 
         [RelayCommand]
         private static void ShowMainWindow()
         {
-            if (Application.Current?.MainWindow is { } mainWindow)
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is { } mainWindow)
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
@@ -269,7 +272,7 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private void ShowLog()
         {
-            if (Application.Current?.MainWindow is MainWindow mainWindow)
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
@@ -279,16 +282,19 @@ namespace VMUpdater.ViewModels
         }
 
         [RelayCommand]
-        private async Task AddHypervisor()
+        private async Task AddHypervisorAsync()
         {
-            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
 
-            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            var dialog = new AddNewHypervisorView();
+            var result = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (result && dialog.DataContext is AddHypervisorViewModel vm)
             {
                 HypervisorModel newHypervisor = vm.CreatedHypervisor;
-
-                // Save to repository
                 await _services.HypervisorRepository.SaveAsync(newHypervisor);
+                Hypervisors.Add(newHypervisor);
             }
         }
 
@@ -307,9 +313,28 @@ namespace VMUpdater.ViewModels
             var newItemViewModel = CreateVMViewModel(newModel);
             newItemViewModel.IsExpanded = true;
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+
             VirtualMachines.Add(newItemViewModel);
+            RefreshFilteredMachines();
 
             UpdateAllCommand.NotifyCanExecuteChanged();
+        }
+
+        [RelayCommand]
+        private async Task AddGuestOSAsync()
+        {
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddGuestOSView();
+            var result = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (result && dialog.DataContext is AddGuestOSViewModel vm)
+            {
+                GuestOSModel newGuestOS = vm.CreatedGuestOS;
+                await _services.GuestOSRepository.SaveAsync(newGuestOS);
+                GuestOSTypes.Add(newGuestOS);
+            }
         }
 
         [RelayCommand]
@@ -318,6 +343,7 @@ namespace VMUpdater.ViewModels
             if (itemToRemove != null)
             {
                 VirtualMachines.Remove(itemToRemove);
+                RefreshFilteredMachines();
                 await _services.VmRepository.DeleteAsync(itemToRemove.Model);
             }
 
@@ -331,7 +357,7 @@ namespace VMUpdater.ViewModels
             foreach (var vm in VirtualMachines)
                 EnqueueUpdateRequest(vm, forceUpdate: true);
         }
-        private bool CanUpdateAll() => !IsUpdating && VirtualMachines?.Any() == true;
+        private bool CanUpdateAll() => !IsUpdating && VirtualMachines.Any();
 
         [RelayCommand]
         private void ToggleFindRow()
@@ -345,6 +371,22 @@ namespace VMUpdater.ViewModels
         private void ToggleLog() => IsLogVisible = !IsLogVisible;
 
         #endregion
+
+        private void RefreshFilteredMachines()
+        {
+            FilteredVirtualMachines.Clear();
+            var query = VirtualMachines.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(vm => vm.DisplayName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true);
+            }
+
+            foreach (var vm in query.OrderBy(vm => vm.DisplayName))
+            {
+                FilteredVirtualMachines.Add(vm);
+            }
+        }
 
         private void CollapseSiblings(VirtualMachineViewModel expandedItem)
         {
@@ -394,7 +436,7 @@ namespace VMUpdater.ViewModels
             {
                 await _services.VmService.StartUpdateAsync(
                     vm.Model,
-                    report => Application.Current.Dispatcher.InvokeAsync(() =>
+                    report => Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         if (report.ProgressDelta > 0)
                         {
@@ -435,7 +477,6 @@ namespace VMUpdater.ViewModels
 
         private Task<int> RunProcessAsync(string vmIdentifier, string fileName, string arguments)
         {
-            Trace.WriteLine($"runProcessAsync({vmIdentifier}, {fileName}, {arguments})");
             var tcs = new TaskCompletionSource<int>();
 
             var startInfo = new ProcessStartInfo
@@ -457,7 +498,7 @@ namespace VMUpdater.ViewModels
             {
                 if (!string.IsNullOrWhiteSpace(e.Data))
                 {
-                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    _ = Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         LogMessage($"[{vmIdentifier}] [StdOut]: {e.Data.Trim()}");
                     });
@@ -468,7 +509,7 @@ namespace VMUpdater.ViewModels
             {
                 if (!string.IsNullOrWhiteSpace(e.Data))
                 {
-                    Application.Current.Dispatcher.InvokeAsync(() =>
+                    Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         LogMessage($"[{vmIdentifier}] [StdErr]: {e.Data.Trim()}");
                     });
@@ -535,10 +576,9 @@ namespace VMUpdater.ViewModels
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
                 vmViewModel.CalculateNextScheduledUpdate();
 
-                // Ensure collection modifications run on the WPF UI Thread
-                if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+                if (!Dispatcher.UIThread.CheckAccess())
                 {
-                    dispatcher.Invoke(() => VirtualMachines.Add(vmViewModel));
+                    await Dispatcher.UIThread.InvokeAsync(() => VirtualMachines.Add(vmViewModel));
                 }
                 else
                 {
@@ -546,7 +586,7 @@ namespace VMUpdater.ViewModels
                 }
             }
 
-            // recheck updateall command availability after loading profiles
+            RefreshFilteredMachines();
             UpdateAllCommand.NotifyCanExecuteChanged();
         }
 
@@ -554,8 +594,7 @@ namespace VMUpdater.ViewModels
         {
             var hypervisors = await _services.HypervisorRepository.LoadAllAsync();
 
-            // Ensure collection updates are on the UI thread
-            Application.Current?.Dispatcher.Invoke(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 Hypervisors.Clear();
                 foreach (var hypervisor in hypervisors)
@@ -567,8 +606,7 @@ namespace VMUpdater.ViewModels
         {
             var guestOSTypes = await _services.GuestOSRepository.LoadAllAsync();
 
-            // Ensure collection updates are on the UI thread
-            Application.Current?.Dispatcher.Invoke(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 GuestOSTypes.Clear();
                 foreach (var guestOS in guestOSTypes)
@@ -589,18 +627,6 @@ namespace VMUpdater.ViewModels
             );
 
             return new VirtualMachineViewModel(model, vmContext);
-        }
-
-        private bool FilterVirtualMachines(object item)
-        {
-            if (string.IsNullOrWhiteSpace(SearchText))
-                return true;
-
-            if (item is not VirtualMachineViewModel vm)
-                return false;
-
-            // Case-insensitive check across multiple properties
-            return vm.DisplayName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) == true;
         }
     }
 }

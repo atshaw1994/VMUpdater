@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
 
 namespace VMUpdater.Views
 {

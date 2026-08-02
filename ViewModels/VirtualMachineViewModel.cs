@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.IO;
 using VMUpdater.Models;
-using VMUpdater.Views;
 using VMUpdater.Services.Abstractions;
-using System.Windows;
 using VMUpdater.Services.Orchestration;
+using VMUpdater.Views;
 
 namespace VMUpdater.ViewModels
 {
@@ -45,6 +47,8 @@ namespace VMUpdater.ViewModels
 
         public ObservableCollection<GuestOSModel> GuestOSTypes => _ctx.GuestOSTypes;
         public ObservableCollection<HypervisorModel> Hypervisors => _ctx.Hypervisors;
+
+        public VirtualMachineViewModel() { }
 
         public VirtualMachineViewModel(VirtualMachineModel model, VMViewModelContext context)
         {
@@ -102,23 +106,39 @@ namespace VMUpdater.ViewModels
         private void UpdateNow() => RequestStartUpdate?.Invoke(this, true);
 
         [RelayCommand]
-        public void Browse()
+        public async Task BrowseAsync()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select a Virtual Machine File"
-            };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
 
-            if (dialog.ShowDialog() == true) VMPath = dialog.FileName;
+            var topLevel = TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select a Virtual Machine File",
+                AllowMultiple = false
+            });
+
+            var file = files.FirstOrDefault();
+            if (file != null)
+            {
+                VMPath = file.Path.LocalPath;
+            }
         }
 
         [RelayCommand]
         private async Task AddHypervisorAsync()
         {
-            var dialog = new AddNewHypervisorView { Owner = Application.Current?.MainWindow };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddNewHypervisorView();
             var currentHypervisor = HypervisorType;
 
-            if (dialog.ShowDialog() == true && dialog.DataContext is AddHypervisorViewModel vm)
+            bool isSuccess = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (isSuccess && dialog.DataContext is AddHypervisorViewModel vm)
             {
                 HypervisorModel newHypervisor = vm.CreatedHypervisor;
                 await _ctx.HypervisorRepository.SaveAsync(newHypervisor);
@@ -140,10 +160,15 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private async Task AddGuestOSAsync()
         {
-            var dialog = new AddGuestOSView { Owner = Application.Current?.MainWindow };
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddGuestOSView();
             var currentGuestOS = GuestOSType;
 
-            if (dialog.ShowDialog() == true && dialog.DataContext is AddGuestOSViewModel vm)
+            bool isSuccess = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (isSuccess && dialog.DataContext is AddGuestOSViewModel vm)
             {
                 GuestOSModel newGuestOS = vm.CreatedGuestOS;
                 await _ctx.GuestOSRepository.SaveAsync(newGuestOS);
@@ -216,9 +241,15 @@ namespace VMUpdater.ViewModels
 
         public string VMPath
         {
-            get => Model.VMPath;
+            get
+            {
+                if (Model == null) return "Path/To/VM";
+                return Model.VMPath;
+            }
             set
             {
+                if (Model == null) return;
+
                 if (SetProperty(Model.VMPath, value, Model, (m, val) => m.VMPath = val))
                 {
                     DisplayName = !string.IsNullOrEmpty(value) ? Path.GetFileNameWithoutExtension(value) : "New Virtual Machine";
@@ -235,6 +266,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnUsernameChanged(string value)
         {
+            if (Model == null) return;
             Model.Username = value;
             _ = SaveAsync();
         }
@@ -244,6 +276,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnPasswordChanged(string value)
         {
+            if (Model == null) return;
             Model.Password = value;
             _ = SaveAsync();
         }
@@ -253,6 +286,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnScheduleDayChanged(string value)
         {
+            if (Model == null) return;
             Model.ScheduleDay = value;
             CalculateNextScheduledUpdate();
             _ = SaveAsync();
@@ -274,7 +308,7 @@ namespace VMUpdater.ViewModels
         partial void OnIsExpandedChanged(bool value)
         {
             ExpandedIcon = value ? "\uE70E" : "\uE70D";
-            if (value) _ctx.OnExpanded?.Invoke(this);
+            if (value && _ctx != null) _ctx.OnExpanded?.Invoke(this);
         }
 
         [ObservableProperty]
@@ -292,15 +326,27 @@ namespace VMUpdater.ViewModels
             }
         }
 
-        public string LastUpdateDisplayText =>
-            Model.LastUpdate == DateTime.MinValue
+        public string LastUpdateDisplayText
+        {
+            get
+            {
+                if (Model == null) return "Last Update: Never";
+                return Model.LastUpdate == DateTime.MinValue
                 ? "Last Update: Never"
                 : $"Last Update: {Model.LastUpdate:dddd, MMMM d 'at' hh:mm tt}";
+            }
+        }
 
-        public string NextUpdateDisplayText =>
-            Model.NextUpdate == DateTime.MinValue
+        public string NextUpdateDisplayText
+        {
+            get
+            {
+                if (Model == null) return "Next Update: Never";
+                return Model.NextUpdate == DateTime.MinValue
                 ? "Next Update: Never"
                 : $"Next Update: {Model.NextUpdate:dddd, MMMM d 'at' hh:mm tt}";
+            }
+        }
 
         #endregion
 
