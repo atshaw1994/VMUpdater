@@ -323,7 +323,18 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private async Task AddGuestOSAsync()
         {
-            
+            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is not { } mainWindow)
+                return;
+
+            var dialog = new AddGuestOSView();
+            var result = await dialog.ShowDialog<bool>(mainWindow);
+
+            if (result && dialog.DataContext is AddGuestOSViewModel vm)
+            {
+                GuestOSModel newGuestOS = vm.CreatedGuestOS;
+                await _services.GuestOSRepository.SaveAsync(newGuestOS);
+                GuestOSTypes.Add(newGuestOS);
+            }
         }
 
         [RelayCommand]
