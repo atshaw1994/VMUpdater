@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using VMUpdater.ViewModels;
 
@@ -22,7 +23,19 @@ namespace VMUpdater.Views
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
-            TransparencyLevelHint = new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.AcrylicBlur };
+            TransparencyLevelHint = [WindowTransparencyLevel.Mica, WindowTransparencyLevel.AcrylicBlur];
+            FindTextBox.PropertyChanged += (s, e) =>
+            {
+                if (e.Property == IsVisibleProperty && (bool)e.NewValue!)
+                {
+                    _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () => 
+                    {
+                        // Small delay matching the transition duration
+                        await Task.Delay(200);
+                        FindTextBox.Focus(); 
+                    });
+                }
+            };
         }
 
         private void LogTextBox_Loaded(object sender, RoutedEventArgs e) => ScrollTextBoxToEnd(sender);

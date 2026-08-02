@@ -17,6 +17,10 @@
         </DataTemplate>
     </Window.DataTemplates>
 
+    <Design.DataContext>
+        <viewmodels:MainViewModel IsFindRowVisible="False" SearchText="" />
+    </Design.DataContext>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -43,41 +47,66 @@
                 <MenuItem Header="Exit" Width="256" Command="{Binding ExitCommand}"/>
             </MenuItem>
         </Menu>
-
-        <Button HorizontalAlignment="Right" 
-                Margin="0,4,4,0" 
-                Padding="10,3" 
-                Command="{Binding ShowLogCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <ic:SymbolIcon Symbol="Document" IconVariant="Regular" FontSize="16" />
-                <TextBlock Text="Log" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Button>
-
-        <!-- Find Row -->
-        <Grid Grid.Row="1" ClipToBounds="True" Height="0">
-            <Grid.Transitions>
-                <Transitions>
-                    <DoubleTransition Property="Height" Duration="0:0:0.25" Easing="CubicEaseOut"/>
-                </Transitions>
-            </Grid.Transitions>
-            <Grid.Styles>
-                <Style Selector="Grid">
-                    <Setter Property="Height" Value="0" />
-                </Style>
-                <Style Selector="Grid[IsVisible=True]">
-                    <Setter Property="Height" Value="40" />
-                </Style>
-            </Grid.Styles>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <TextBox x:Name="FindTextBox" Margin="8,0" Height="30" Text="{Binding SearchText}"/>
-            <Button Grid.Column="1" Margin="4,0" Padding="10,3" Command="{Binding ToggleFindRowCommand}">
-                <PathIcon Data="M 0 0 L 10 10 M 10 0 L 0 10" Width="10" Height="10" VerticalAlignment="Center"/>
+                    
+        <Grid Margin="8,0" HorizontalAlignment="Right" ClipToBounds="True">
+            <!-- Search Button (fades/hides when search expands) -->
+            <Button Height="30" 
+                    Command="{Binding ToggleFindRowCommand}" 
+                    IsVisible="{Binding !IsFindRowVisible}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
+                    <TextBlock Text="Search..." VerticalAlignment="Center"/>
+                </StackPanel>
             </Button>
+
+            <!-- Expanding Search TextBox -->
+            <TextBox x:Name="FindTextBox"
+                     Height="30"
+                     Text="{Binding SearchText, Mode=TwoWay}"
+                     PlaceholderText="Search..."
+                     IsVisible="{Binding IsFindRowVisible}">
+        
+                <!-- Smooth Width Transition -->
+                <TextBox.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseOut"/>
+                    </Transitions>
+                </TextBox.Transitions>
+
+                <!-- Dynamic Width based on state -->
+                <TextBox.Styles>
+                    <Style Selector="TextBox[IsVisible=True]">
+                        <Setter Property="Width" Value="384"/>
+                    </Style>
+                    <Style Selector="TextBox[IsVisible=False]">
+                        <Setter Property="Width" Value="0"/>
+                    </Style>
+                </TextBox.Styles>
+
+                <TextBox.InnerRightContent>
+                    <Button Command="{Binding ToggleFindRowCommand}"
+                            Width="22" Height="22"
+                            Margin="0,0,4,0"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Cursor="Hand">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#20000000" />
+                                <Setter Property="CornerRadius" Value="4" />
+                            </Style>
+                            <Style Selector="Button:pressed /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#40000000" />
+                            </Style>
+                        </Button.Styles>
+                        <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12"/>
+                    </Button>
+                </TextBox.InnerRightContent>
+            </TextBox>
         </Grid>
 
         <!-- Virtual Machines List -->
@@ -112,7 +141,6 @@
         <!-- Log Text -->
         <Border Grid.Row="2" 
                 Background="Black"
-                Margin="0,-40,0,0"
                 IsVisible="{Binding IsLogVisible}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -150,6 +178,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" 
@@ -157,7 +186,17 @@
                            VerticalAlignment="Center" 
                            Margin="4,0,0,0"/>
 
-                <Grid Grid.Column="1" Margin="0,0,4,0">
+                <Button Grid.Column="1"
+                        Margin="2"
+                        Padding="10,3" 
+                        Command="{Binding ShowLogCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ic:SymbolIcon Symbol="Document" IconVariant="Filled" FontSize="16" />
+                        <TextBlock Text="Show Log" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Grid Grid.Column="2" Margin="0,0,4,0">
                     <Button Command="{Binding UpdateAllCommand}"
                             Padding="10,3"
                             Margin="2"

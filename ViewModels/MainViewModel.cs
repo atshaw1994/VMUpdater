@@ -43,6 +43,11 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
 
+        public MainViewModel()
+        {
+
+        }
+
         public MainViewModel(MainServicesContext services)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
@@ -464,7 +469,6 @@ namespace VMUpdater.ViewModels
 
         private Task<int> RunProcessAsync(string vmIdentifier, string fileName, string arguments)
         {
-            Trace.WriteLine($"runProcessAsync({vmIdentifier}, {fileName}, {arguments})");
             var tcs = new TaskCompletionSource<int>();
 
             var startInfo = new ProcessStartInfo
@@ -486,7 +490,7 @@ namespace VMUpdater.ViewModels
             {
                 if (!string.IsNullOrWhiteSpace(e.Data))
                 {
-                    Dispatcher.UIThread.InvokeAsync(() =>
+                    _ = Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         LogMessage($"[{vmIdentifier}] [StdOut]: {e.Data.Trim()}");
                     });
