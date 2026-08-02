@@ -1,10 +1,6 @@
 ﻿<Window x:Class="VMUpdater.Views.AboutDialog"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VMUpdater.Views"
-        mc:Ignorable="d"
         RequestedThemeVariant="Default"
         Title="About VMUpdater" 
         Height="450" Width="600"
@@ -20,7 +16,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Image Source="/VMUpdater.ico" Width="64" Height="64" HorizontalAlignment="Left" Margin="16,8,0,20"/>
+        <Image Source="avares://VMUpdater/Resources/VMUpdater.ico" Width="64" Height="64" HorizontalAlignment="Left" Margin="16,8,0,20"/>
 
         <!-- Header / App Info -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20">

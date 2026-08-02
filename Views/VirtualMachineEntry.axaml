@@ -2,13 +2,10 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="using:VMUpdater.Views"
              xmlns:vm="using:VMUpdater.ViewModels"
              x:DataType="vm:VirtualMachineViewModel"
-             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-             mc:Ignorable="d" 
-             d:DesignWidth="800">
+             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}">
     <Grid Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -36,8 +33,7 @@
         <TextBlock IsHitTestVisible="False" 
                    FontSize="16" 
                    VerticalAlignment="Center" 
-                   Margin="8,0"
-                   d:Text="New Virtual Machine (Windows 11)">
+                   Margin="8,0">
             <TextBlock.Text>
                 <MultiBinding StringFormat="{}{0} ({1})">
                     <Binding Path="DisplayName"/>
@@ -131,8 +127,8 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="{Binding LastUpdateDisplayText}" d:Text="Last Update: January 1, 0001 at 12:00 AM"/>
-                        <TextBlock Grid.Row="1" Text="{Binding NextUpdateDisplayText}" d:Text="Next Update: January 1, 0001 at 12:00 AM"/>
+                        <TextBlock Text="{Binding LastUpdateDisplayText}" />
+                        <TextBlock Grid.Row="1" Text="{Binding NextUpdateDisplayText}" />
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Grid.Column="1">

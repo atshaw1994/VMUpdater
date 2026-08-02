@@ -1,9 +1,8 @@
 ﻿<Application x:Class="VMUpdater.App"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:helpers="clr-namespace:VMUpdater.Helpers"
-             xmlns:local="clr-namespace:VMUpdater"
-             RequestedThemeVariant="System">
+             xmlns:viewmodels="using:VMUpdater.ViewModels"
+             RequestedThemeVariant="Default">
 
     <Application.Styles>
         <FluentTheme />
@@ -25,21 +24,17 @@
                 <ControlTemplate TargetType="ProgressBar">
                     <Grid x:Name="TemplateRoot">
                         <!-- 1. Track Background -->
-                        <Rectangle x:Name="PART_Track" 
-                                   Fill="{TemplateBinding Background}" 
-                                   RadiusX="2" 
-                                   RadiusY="2"/>
+                        <Border x:Name="PART_Track" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="2"/>
 
-                        <!-- 2. Deterministic Fill Container (Managed natively by Avalonia via PART_Indicator) -->
-                        <Grid x:Name="PART_Indicator" 
-                              HorizontalAlignment="Left" 
-                              ClipToBounds="True">
-
-                            <Rectangle x:Name="IndicatorFill" 
-                                       Fill="{TemplateBinding Foreground}" 
-                                       RadiusY="3" 
-                                       RadiusX="3"/>
-
+                        <!-- 2. Deterministic Fill Container (Must be Border for PART_Indicator) -->
+                        <Border x:Name="PART_Indicator" 
+                                Background="{TemplateBinding Foreground}"
+                                HorizontalAlignment="Left" 
+                                CornerRadius="3"
+                                ClipToBounds="True">
+                            
                             <!-- Sheen Overlay Path -->
                             <Path x:Name="IndicatorSheen">
                                 <Path.Fill>
@@ -53,25 +48,24 @@
                                     M0,8 l8,-8 h50 l-8,8z
                                 </Path.Data>
                                 <Path.RenderTransform>
-                                    <TranslateTransform x:Name="SheenTransform" X="-20" />
+                                    <TranslateTransform X="-20" />
                                 </Path.RenderTransform>
                             </Path>
-                        </Grid>
+                        </Border>
 
                         <!-- 3. Indeterminate Track Layer -->
                         <Grid x:Name="IndeterminateRoot" 
                               ClipToBounds="True" 
                               IsVisible="False">
-                            <Rectangle x:Name="IndeterminatePill"
-                                       Fill="{TemplateBinding Foreground}"
-                                       RadiusX="4"
-                                       RadiusY="4"
-                                       Width="30"
-                                       HorizontalAlignment="Left">
-                                <Rectangle.RenderTransform>
-                                    <TranslateTransform x:Name="PillTransform" X="-30" />
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
+                            <Border x:Name="IndeterminatePill"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="4"
+                                    Width="30"
+                                    HorizontalAlignment="Left">
+                                <Border.RenderTransform>
+                                    <TranslateTransform X="-30" />
+                                </Border.RenderTransform>
+                            </Border>
                         </Grid>
                     </Grid>
                 </ControlTemplate>
@@ -101,6 +95,7 @@
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="avares://VMUpdater/Resources/VMUpdater.ico"
+                      x:DataType="viewmodels:MainViewModel"
                       ToolTipText="{Binding TrayToolTipText}"
                       Command="{Binding ShowMainWindowCommand}">
                 <TrayIcon.Menu>
