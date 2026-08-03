@@ -8,7 +8,11 @@ namespace VMUpdater.Views
     /// </summary>
     public partial class AboutDialog : Window
     {
-        public AboutDialog() => InitializeComponent();
+        public AboutDialog()
+        {
+            InitializeComponent();
+            DataContext = new ViewModels.AboutDialogViewModel();
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
     }

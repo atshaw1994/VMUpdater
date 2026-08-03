@@ -17,7 +17,7 @@ namespace VMUpdater.ViewModels
     {
         public GuestOSModel CreatedGuestOS { get; } = new();
 
-        #region Editable Properties
+        #region Properties
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]

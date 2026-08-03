@@ -1,6 +1,8 @@
 ﻿<Window x:Class="VMUpdater.Views.AboutDialog"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewmodels="using:VMUpdater.ViewModels"
+        x:DataType="viewmodels:AboutDialogViewModel"
         RequestedThemeVariant="Default"
         Title="About VMUpdater" 
         Height="450" Width="600"
@@ -8,6 +10,10 @@
         CanResize="False"
         Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}">
+
+    <Design.DataContext>
+        <viewmodels:AboutDialogViewModel IsUpdateAvailable="True"/>
+    </Design.DataContext>
 
     <Grid Margin="30">
         <Grid.RowDefinitions>
@@ -30,11 +36,17 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
                        Margin="0,4,0,0" 
                        HorizontalAlignment="Center"/>
-            <TextBlock Text="Version 1.0" 
+            <TextBlock Text="{Binding CurrentVersion, StringFormat='{}Version {0:0}'}" 
                        FontSize="11" 
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
                        Margin="0,2,0,0" 
                        HorizontalAlignment="Center"/>
+            <HyperlinkButton Content="New Version Available!" 
+                             NavigateUri="https://github.com/atshaw1994/VMUpdater/releases"
+                             FontSize="11" 
+                             Margin="0,2,0,0" 
+                             HorizontalAlignment="Center"
+                             IsVisible="{Binding IsUpdateAvailable}"/>
         </StackPanel>
 
         <!-- License & Description Box -->
