@@ -71,7 +71,13 @@ namespace VMUpdater.ViewModels
         public partial bool IsLogVisible { get; set; } = false;
 
         [ObservableProperty]
+        public partial bool IsPreferencesVisible { get; set; } = false;
+
+        [ObservableProperty]
         public partial bool IsFindRowVisible { get; set; } = false;
+
+        [ObservableProperty]
+        public partial string MenuBarStyle { get; set; } = "Icons And Text";
 
         [ObservableProperty]
         public partial double UpdateProgress { get; set; } = 0.0;
@@ -272,12 +278,24 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private void ShowLog()
         {
-            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is MainWindow mainWindow)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: MainWindow mainWindow })
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
                 mainWindow.Activate();
                 IsLogVisible = true;
+            }
+        }
+
+        [RelayCommand]
+        private void ShowPreferences()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: MainWindow mainWindow })
+            {
+                mainWindow.Show();
+                mainWindow.WindowState = WindowState.Normal;
+                mainWindow.Activate();
+                IsPreferencesVisible = true;
             }
         }
 
@@ -369,6 +387,9 @@ namespace VMUpdater.ViewModels
 
         [RelayCommand]
         private void ToggleLog() => IsLogVisible = !IsLogVisible;
+
+        [RelayCommand]
+        private void TogglePreferences() => IsPreferencesVisible = !IsPreferencesVisible;
 
         #endregion
 
