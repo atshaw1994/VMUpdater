@@ -74,7 +74,7 @@ namespace VMUpdater.ViewModels
         public partial bool IsPreferencesVisible { get; set; } = false;
 
         [ObservableProperty]
-        public partial bool IsFindRowVisible { get; set; } = false;
+        public partial bool IsSearchBarExpanded { get; set; } = false;
 
         [ObservableProperty]
         public partial string MenuBarStyle { get; set; } = "Icons And Text";
@@ -378,11 +378,13 @@ namespace VMUpdater.ViewModels
         private bool CanUpdateAll() => !IsUpdating && VirtualMachines.Any();
 
         [RelayCommand]
-        private void ToggleFindRow()
+        private void ExpandSearchBar() => IsSearchBarExpanded = true;
+
+        [RelayCommand]
+        private void RetractSearchBar()
         {
-            IsFindRowVisible = !IsFindRowVisible;
-            if (!IsFindRowVisible)
-                SearchText = string.Empty;
+            IsSearchBarExpanded = false;
+            SearchText = string.Empty;
         }
 
         [RelayCommand]
