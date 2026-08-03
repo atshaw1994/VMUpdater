@@ -55,6 +55,21 @@
 		</EmbeddedResource>
 	</ItemGroup>
 
+	<!-- Build Linux .tar.gz Archive Target -->
+	<Target Name="PackageLinuxTarGz" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.StartsWith('linux'))">
+		<PropertyGroup>
+			<TarGzFileName>$(PublishDir)VMUpdater-linux-x64-v$(Version).tar.gz</TarGzFileName>
+		</PropertyGroup>
+
+		<!-- Uses PowerShell to create a true tar.gz archive on Windows -->
+		<Exec Command="powershell -Command &quot;tar -czf '$(TarGzFileName)' -C '$(PublishDir).' .&quot;" />
+
+		<Delete Files="$(PublishDir)VMUpdater.dll.config" Condition="Exists('$(PublishDir)VMUpdater.dll.config')" />
+		<Delete Files="$(PublishDir)VMUpdater" Condition="Exists('$(PublishDir)VMUpdater')" />
+
+		<Message Text="Successfully created archive: $(TarGzFileName)" Importance="high" />
+	</Target>
+
 	<!-- Build macOS .app Bundle Target -->
 	<Target Name="BuildMacAppBundle" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.StartsWith('osx'))">
 		<PropertyGroup>
@@ -68,6 +83,8 @@
 
 		<Move SourceFiles="$(PublishDir)VMUpdater" DestinationFolder="$(MacOSDir)" Condition="Exists('$(PublishDir)VMUpdater')" />
 		<Move SourceFiles="$(PublishDir)VMUpdater.pdb" DestinationFolder="$(MacOSDir)" Condition="Exists('$(PublishDir)VMUpdater.pdb')" />
+		<Copy SourceFiles="VMUpdater.icns" DestinationFolder="$(ResourcesDir)" Condition="Exists('VMUpdater.icns')" />
+		
 		<Delete Files="$(PublishDir)VMUpdater.dll.config" Condition="Exists('$(PublishDir)VMUpdater.dll.config')" />
 
 		<WriteLinesToFile File="$(AppBundleDir)/Contents/Info.plist" Overwrite="true" Lines="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
@@ -88,6 +105,16 @@
     &lt;string&gt;VMUpdater.icns&lt;/string&gt;
 &lt;/dict&gt;
 &lt;/plist&gt;" />
+	</Target>
+
+	<!-- Custom Publish Shortcut: Publish-Linux -->
+	<Target Name="PublishLinux">
+		<MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore;Publish" Properties="Configuration=Release;RuntimeIdentifier=linux-x64;SelfContained=true;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;DebugType=embedded" />
+	</Target>
+
+	<!-- Custom Publish Shortcut: Publish-macOS -->
+	<Target Name="PublishMac">
+		<MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore;Publish" Properties="Configuration=Release;RuntimeIdentifier=osx-x64;SelfContained=true;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true" />
 	</Target>
 
 </Project>
