@@ -20,7 +20,6 @@
 
     <Design.DataContext>
         <viewmodels:MainViewModel 
-            IsFindRowVisible="False" 
             SearchText="" />
     </Design.DataContext>
 
@@ -49,10 +48,10 @@
             <!-- Search -->
             <Grid Margin="0,0,2,0" VerticalAlignment="Center" ClipToBounds="True">
                 <!-- Collapsed Search Button -->
-                <Button Command="{Binding ToggleFindRowCommand}" 
+                <Button Command="{Binding ExpandSearchBarCommand}" 
                         Height="32"
                         Cursor="Hand"
-                        IsVisible="{Binding !IsFindRowVisible}">
+                        IsVisible="{Binding !IsSearchBarExpanded}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
                         <TextBlock Text="Search..." VerticalAlignment="Center"/>
@@ -79,7 +78,7 @@
                          RenderTransformOrigin="100%,50%"
                          Text="{Binding SearchText, Mode=TwoWay}"
                          PlaceholderText="Search..."
-                         IsVisible="{Binding IsFindRowVisible}">
+                         IsVisible="{Binding IsSearchBarExpanded}">
     
                     <TextBox.RenderTransform>
                         <ScaleTransform ScaleX="1" ScaleY="1" />
@@ -107,7 +106,7 @@
                     </TextBox.Styles>
 
                     <TextBox.InnerRightContent>
-                        <Button Command="{Binding ToggleFindRowCommand}"
+                        <Button Command="{Binding RetractSearchBarCommand}"
                                 Width="22" Height="22"
                                 Margin="0,0,4,0"
                                 Padding="0"
@@ -212,7 +211,6 @@
                 <TextBlock Text="Log" 
                            IsHitTestVisible="False" 
                            FontSize="16" 
-                           Foreground="White"
                            VerticalAlignment="Center" 
                            Margin="8"/>
 
@@ -241,7 +239,6 @@
                 <TextBlock Text="Preferences" 
                            IsHitTestVisible="False" 
                            FontSize="16" 
-                           Foreground="White"
                            VerticalAlignment="Center" 
                            Margin="8"/>
 
@@ -250,13 +247,6 @@
                         Margin="8"
                         CornerRadius="6">
                     <ListBox VerticalAlignment="Top">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Menu Bar Style" VerticalAlignment="Center"/>
-                            <ComboBox SelectedItem="{Binding MenuBarStyle}" Margin="8,0,0,0">
-                                <x:String>Icons</x:String>
-                                <x:String>Icons And Text</x:String>
-                            </ComboBox>
-                        </StackPanel>
                     </ListBox>
                 </Border>
             </Grid>
