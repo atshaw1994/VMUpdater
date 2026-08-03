@@ -8,6 +8,16 @@
 		<StartupObject>VMUpdater.Program</StartupObject>
 		<ApplicationIcon>Resources\VMUpdater.ico</ApplicationIcon>
 		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+
+		<CFBundleName>VMUpdater</CFBundleName>
+		<CFBundleDisplayName>VMUpdater</CFBundleDisplayName>
+		<CFBundleIdentifier>com.atshaw1994.vmupdater</CFBundleIdentifier>
+		<CFBundleVersion>1.0.0</CFBundleVersion>
+		<CFBundlePackageType>APPL</CFBundlePackageType>
+		<CFBundleSignature>????</CFBundleSignature>
+		<CFBundleExecutable>VMUpdater</CFBundleExecutable>
+		<CFBundleIconFile>VMUpdater.icns</CFBundleIconFile>
+		<CFBundleShortVersionString>1.0.0</CFBundleShortVersionString>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -28,6 +38,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="DotNet.Bundle" Version="0.9.13" />
 		<PackageReference Include="FluentAvaloniaUI" Version="3.0.2" />
 		<PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
 	</ItemGroup>

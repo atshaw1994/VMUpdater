@@ -99,16 +99,47 @@
                       ToolTipText="{Binding TrayToolTipText}"
                       Command="{Binding ShowMainWindowCommand}">
                 <TrayIcon.Menu>
-                    <NativeMenu>
+                    <NativeMenu x:DataType="viewmodels:MainViewModel">
                         <NativeMenuItem Header="Open" Command="{Binding ShowMainWindowCommand}" />
-                        <NativeMenuItem Header="Open Log" Command="{Binding ShowLogCommand}" />
+                        <NativeMenuItem Header="Show Log" Command="{Binding ShowLogCommand}" />
                         <NativeMenuItem Header="Update All" Command="{Binding UpdateAllCommand}" />
                         <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Add">
+                            <NativeMenu x:DataType="viewmodels:MainViewModel">
+                                <NativeMenuItem Header="Virtual Machine" Command="{Binding AddVirtualMachineCommand}" />
+                                <NativeMenuItem Header="Hypervisor" Command="{Binding AddHypervisorCommand}" />
+                                <NativeMenuItem Header="GuestOS Type" Command="{Binding AddGuestOSCommand}" />
+                            </NativeMenu>
+                        </NativeMenuItem>
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
                         <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
                     </NativeMenu>
                 </TrayIcon.Menu>
             </TrayIcon>
         </TrayIcons>
     </TrayIcon.Icons>
+
+    <!-- macOS Top Menu Bar Definitions -->
+    <NativeMenu.Menu>
+        <NativeMenu x:DataType="viewmodels:MainViewModel">
+            <NativeMenuItem Header="VMUpdater">
+                <NativeMenu x:DataType="viewmodels:MainViewModel">
+                    <NativeMenuItem Header="Show Log" Command="{Binding ShowLogCommand}" />
+                    <NativeMenuItem Header="Update All" Command="{Binding UpdateAllCommand}" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
+                    <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="Add">
+                <NativeMenu x:DataType="viewmodels:MainViewModel">
+                    <NativeMenuItem Header="Virtual Machine" Command="{Binding AddVirtualMachineCommand}" />
+                    <NativeMenuItem Header="Hypervisor" Command="{Binding AddHypervisorCommand}" />
+                    <NativeMenuItem Header="GuestOS Type" Command="{Binding AddGuestOSCommand}" />
+                </NativeMenu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
 
 </Application>

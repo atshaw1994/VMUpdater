@@ -19,7 +19,9 @@
     </Window.DataTemplates>
 
     <Design.DataContext>
-        <viewmodels:MainViewModel IsFindRowVisible="False" SearchText="" />
+        <viewmodels:MainViewModel 
+            IsFindRowVisible="False" 
+            SearchText="" />
     </Design.DataContext>
 
     <Grid>
@@ -33,12 +35,8 @@
         <!-- Toolbar -->
         <Grid Margin="8,8,8,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.Styles>
                 <!-- Ensures SplitButton and regular Buttons share identical height & vertical alignment -->
@@ -48,71 +46,12 @@
                 </Style>
             </Grid.Styles>
 
-            <!-- Add Machine -->
-            <SplitButton Command="{Binding AddVirtualMachineCommand}" Margin="0,0,2,0" ToolTip.Tip="Add Machine">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="DocumentAdd" IconVariant="Filled" IconSize="Size16" />
-                    <TextBlock Text="Add Machine" VerticalAlignment="Center" IsVisible="False"/>
-                </StackPanel>
-    
-                <SplitButton.Flyout>
-                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                        <MenuItem Header="Add New Hypervisor" 
-                                  Command="{Binding AddHypervisorCommand}">
-                            <MenuItem.Icon>
-                                <ic:FluentIcon Icon="Server" IconSize="Size16" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-            
-                        <MenuItem Header="Add New Guest OS Type" 
-                                  Command="{Binding AddGuestOSCommand}">
-                            <MenuItem.Icon>
-                                <ic:FluentIcon Icon="Desktop" IconSize="Size16" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </SplitButton.Flyout>
-            </SplitButton>
-
-            <!-- Import -->
-            <Button Grid.Column="1" Command="{Binding ImportCommand}" Margin="2,0" ToolTip.Tip="Import">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="DocumentArrowDown" IconVariant="Filled" IconSize="Size16" />
-                    <TextBlock Text="Import" VerticalAlignment="Center" IsVisible="False"/>
-                </StackPanel>
-            </Button>
-
-            <!-- Export -->
-            <Button Grid.Column="2" Command="{Binding ExportCommand}" Margin="2,0" ToolTip.Tip="Export">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="DocumentArrowUp" IconVariant="Filled" IconSize="Size16" />
-                    <TextBlock Text="Export" VerticalAlignment="Center" IsVisible="False"/>
-                </StackPanel>
-            </Button>
-
-            <!-- Log -->
-            <Button Grid.Column="3" Command="{Binding ShowLogCommand}" Margin="2,0" ToolTip.Tip="Show Log">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="Document" IconVariant="Filled" IconSize="Size16" />
-                    <TextBlock Text="Log" VerticalAlignment="Center" IsVisible="False"/>
-                </StackPanel>
-            </Button>
-
-            <!-- About -->
-            <Button Grid.Column="4" Command="{Binding AboutCommand}" Margin="2,0" ToolTip.Tip="About">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ic:FluentIcon Icon="QuestionCircle" IconVariant="Filled" IconSize="Size16" />
-                    <TextBlock Text="About" VerticalAlignment="Center" IsVisible="False"/>
-                </StackPanel>
-            </Button>
-
             <!-- Search -->
-            <Grid Grid.Column="5" Margin="2,0,0,0" VerticalAlignment="Center" ClipToBounds="True">
+            <Grid Margin="0,0,2,0" VerticalAlignment="Center" ClipToBounds="True">
                 <!-- Collapsed Search Button -->
                 <Button Command="{Binding ToggleFindRowCommand}" 
                         Height="32"
                         Cursor="Hand"
-                        HorizontalAlignment="Right"
                         IsVisible="{Binding !IsFindRowVisible}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <ic:FluentIcon Icon="Search" IconVariant="Regular" IconSize="Size12" />
@@ -192,10 +131,41 @@
                     </TextBox.InnerRightContent>
                 </TextBox>
             </Grid>
+
+            <!-- Hamburger Menu -->
+            <Button Grid.Column="1" Width="32">
+                <Button.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                    </Style>
+                </Button.Styles>
+                <Button.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="Add">
+                            <MenuItem Header="Virtual Machine" Command="{Binding AddVirtualMachineCommand}" />
+                            <MenuItem Header="Hypervisor" Command="{Binding AddHypervisorCommand}" />
+                            <MenuItem Header="Guest OS Type" Command="{Binding AddGuestOSCommand}" />
+                        </MenuItem>
+                        <MenuItem Header="Import" Command="{Binding ImportCommand}" />
+                        <MenuItem Header="Export" Command="{Binding ExportCommand}" />
+                        <Separator />
+                        <MenuItem Header="Show Log" Command="{Binding ShowLogCommand}" />
+                        <Separator />
+                        <MenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
+                        <Separator />
+                        <MenuItem Header="About" Command="{Binding AboutCommand}" />
+                        <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                    </MenuFlyout>
+                </Button.Flyout>
+                <ic:FluentIcon Icon="MoreVertical" IconVariant="Regular" IconSize="Size16" />
+            </Button>
         </Grid>
 
         <!-- Virtual Machines List -->
-        <Border Grid.Row="2" Margin="0,8,0,0" Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+        <Border Grid.Row="2" 
+                Margin="0,8,0,0" 
+                Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
             <ListBox ItemsSource="{Binding FilteredVirtualMachines}"
                      Margin="10,10,4,10"
                      Background="Transparent"
@@ -224,9 +194,8 @@
         </Border>
 
         <!-- Log Text -->
-        <Border Grid.Row="2" 
-                Margin="0,8,0,0"
-                Background="Black"
+        <Border Grid.RowSpan="3" 
+                Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
                 IsVisible="{Binding IsLogVisible}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -234,9 +203,8 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Button Height="30" 
-                        HorizontalAlignment="Right" 
-                        HorizontalContentAlignment="Right"
+                <Button Height="32" Width="32" Margin="4,0" 
+                        HorizontalAlignment="Right" HorizontalContentAlignment="Right"
                         Command="{Binding ToggleLogCommand}">
                     <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12" />
                 </Button>
@@ -246,11 +214,51 @@
                            FontSize="16" 
                            Foreground="White"
                            VerticalAlignment="Center" 
-                           Margin="8,0"/>
+                           Margin="8"/>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" Margin="6,8" VerticalScrollBarVisibility="Auto">
                     <TextBox Text="{Binding LogText}"/>
                 </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Preferences -->
+        <Border Grid.RowSpan="3" 
+                Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                IsVisible="{Binding IsPreferencesVisible}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Height="32" Width="32" Margin="4,0" 
+                        HorizontalAlignment="Right" HorizontalContentAlignment="Right"
+                        Command="{Binding TogglePreferencesCommand}">
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size12" />
+                </Button>
+
+                <TextBlock Text="Preferences" 
+                           IsHitTestVisible="False" 
+                           FontSize="16" 
+                           Foreground="White"
+                           VerticalAlignment="Center" 
+                           Margin="8"/>
+
+                <Border Background="{DynamicResource SystemControlPageBackgroundChromeMediumLowBrush}"
+                        Grid.Row="1"
+                        Margin="8"
+                        CornerRadius="6">
+                    <ListBox VerticalAlignment="Top">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Menu Bar Style" VerticalAlignment="Center"/>
+                            <ComboBox SelectedItem="{Binding MenuBarStyle}" Margin="8,0,0,0">
+                                <x:String>Icons</x:String>
+                                <x:String>Icons And Text</x:String>
+                            </ComboBox>
+                        </StackPanel>
+                    </ListBox>
+                </Border>
             </Grid>
         </Border>
 
