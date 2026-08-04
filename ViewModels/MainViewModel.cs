@@ -43,7 +43,11 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<HypervisorModel> Hypervisors { get; } = [];
         public ObservableCollection<GuestOSModel> GuestOSTypes { get; } = [];
 
-        public MainViewModel() { }
+        public MainViewModel() 
+        {
+            _services = null!;
+            _logFilePath = string.Empty;
+        }
 
         public MainViewModel(MainServicesContext services)
         {
@@ -72,6 +76,13 @@ namespace VMUpdater.ViewModels
 
         [ObservableProperty]
         public partial bool IsAutoMode { get; set; } = false;
+
+        partial void OnIsAutoModeChanged(bool value)
+        {
+            if (!value)
+                foreach (var vm in VirtualMachines)
+                    vm.IsAutoUpdate = false;
+        }
 
         [ObservableProperty]
         public partial bool IsPreferencesVisible { get; set; } = false;
@@ -600,6 +611,7 @@ namespace VMUpdater.ViewModels
                 vmViewModel.HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
                 vmViewModel.GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+                vmViewModel.IsAutoUpdate = model.IsAutoUpdate;
                 vmViewModel.CalculateNextScheduledUpdate();
 
                 if (!Dispatcher.UIThread.CheckAccess())

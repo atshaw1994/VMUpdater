@@ -4,6 +4,8 @@
         xmlns:viewmodels="using:VMUpdater.ViewModels"
         xmlns:views="using:VMUpdater.Views"
         xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:models="using:VMUpdater.Models"
+        xmlns:system="using:System"
         x:DataType="viewmodels:MainViewModel"
         x:Name="RootWindow"
         Closing="Window_Closing"
@@ -19,8 +21,7 @@
     </Window.DataTemplates>
 
     <Design.DataContext>
-        <viewmodels:MainViewModel 
-            SearchText="" />
+        <StaticResource ResourceKey="DesignMainViewModel" />
     </Design.DataContext>
 
     <Grid>
@@ -38,16 +39,9 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid.Styles>
-                <!-- Ensures SplitButton and regular Buttons share identical height & vertical alignment -->
-                <Style Selector="SplitButton, Button">
-                    <Setter Property="Height" Value="32"/>
-                    <Setter Property="VerticalAlignment" Value="Center"/>
-                </Style>
-            </Grid.Styles>
 
             <!-- Search -->
-            <Grid Margin="0,0,2,0" VerticalAlignment="Center" ClipToBounds="True">
+            <Grid Margin="0,0,8,0" VerticalAlignment="Center" ClipToBounds="True">
                 <!-- Collapsed Search Button -->
                 <Button Command="{Binding ExpandSearchBarCommand}" 
                         Height="32"
@@ -88,8 +82,8 @@
                     <TextBox.Transitions>
                         <Transitions>
                             <!-- Smooth Transform Transition -->
-                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                            <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.8" Easing="CubicEaseOut"/>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.1"/>
                         </Transitions>
                     </TextBox.Transitions>
 
@@ -175,7 +169,7 @@
         <!-- Virtual Machines List -->
         <Border Grid.Row="2" 
                 Margin="0,8,0,0" 
-                Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+                Background="{DynamicResource SystemControlPageBackgroundMediumAltMediumBrush}">
             <ListBox ItemsSource="{Binding FilteredVirtualMachines}"
                      Margin="10,10,4,10"
                      Background="Transparent"
@@ -265,7 +259,7 @@
 
         <!-- Status Bar -->
         <Border Grid.Row="3" 
-                Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="4,16">

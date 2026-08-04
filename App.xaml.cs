@@ -65,7 +65,7 @@ namespace VMUpdater
 
         private async void BackgroundSchedulerLoop_Tick(object? sender, EventArgs e)
         {
-            if (_viewModel == null || _viewModel.IsUpdating) return;
+            if (_viewModel == null || _viewModel.IsUpdating || !_viewModel.IsAutoMode) return;
 
             DateTime now = DateTime.Now;
 
@@ -74,15 +74,13 @@ namespace VMUpdater
                 if (!string.Equals(now.DayOfWeek.ToString(), vm.ScheduleDay, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (_viewModel.IsAutoMode && vm.IsAutoUpdate)
+                if (vm.IsAutoUpdate &&
+                    vm.Model.NextUpdate != DateTime.MinValue &&
+                    now.Hour == vm.Model.NextUpdate.Hour &&
+                    now.Minute == vm.Model.NextUpdate.Minute)
                 {
-                    if (vm.Model.NextUpdate != DateTime.MinValue &&
-                        now.Hour == vm.Model.NextUpdate.Hour &&
-                        now.Minute == vm.Model.NextUpdate.Minute)
-                    {
-                        _viewModel.LogMessage($"Automated Cron Schedule validated for [{vm.DisplayName}]. Requesting update...");
-                        _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
-                    } 
+                    _viewModel.LogMessage($"Automated Cron Schedule validated for [{vm.DisplayName}]. Requesting update...");
+                    _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
                 }
             }
         }
