@@ -48,7 +48,11 @@ namespace VMUpdater.ViewModels
         public ObservableCollection<GuestOSModel> GuestOSTypes => _ctx.GuestOSTypes;
         public ObservableCollection<HypervisorModel> Hypervisors => _ctx.Hypervisors;
 
-        public VirtualMachineViewModel() { }
+        public VirtualMachineViewModel() 
+        {
+            _ctx = null!;
+            Model = null!;
+        }
 
         public VirtualMachineViewModel(VirtualMachineModel model, VMViewModelContext context)
         {
@@ -197,6 +201,13 @@ namespace VMUpdater.ViewModels
         [ObservableProperty]
         public partial bool IsAutoUpdate { get; set; }
 
+        partial void OnIsAutoUpdateChanged(bool value)
+        {
+            if (Model == null) return;
+            Model.IsAutoUpdate = value;
+            _ = SaveAsync();
+        }
+
         [ObservableProperty]
         public partial double UpdateProgress { get; set; }
 
@@ -300,6 +311,7 @@ namespace VMUpdater.ViewModels
 
         partial void OnScheduleTimeChanged(DateTime value)
         {
+            if (Model == null) return;
             Model.ScheduleTime = value;
             CalculateNextScheduledUpdate();
             _ = SaveAsync();
@@ -322,6 +334,7 @@ namespace VMUpdater.ViewModels
             get => Model.LastUpdate;
             set
             {
+                if (Model == null) return;
                 if (SetProperty(Model.LastUpdate, value, Model, (m, val) => m.LastUpdate = val))
                 {
                     OnPropertyChanged(nameof(LastUpdateDisplayText));

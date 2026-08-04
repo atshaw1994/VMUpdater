@@ -3,27 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewmodels="using:VMUpdater.ViewModels"
              RequestedThemeVariant="Default">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Resources/DesignData.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme  />
-
-        <!-- AddGlyphStyle for Icon TextBlocks -->
-        <Style Selector="TextBlock.AddGlyphStyle">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
-
-        <!-- Dynamic ScrollViewer Margin Helper for ItemsControl -->
-        <Style Selector="ItemsControl.WithScrollBarMargin">
-            <Setter Property="Margin" Value="0,0,0,0"/>
-        </Style>
-
-        <!-- Avalonia uses ScrollViewer state pseudo-classes rather than ComputedScrollBarVisibility -->
-        <Style Selector="ScrollViewer:vertical-scrollbar-visible ItemsControl.WithScrollBarMargin">
-            <Setter Property="Margin" Value="0,0,15,0"/>
-        </Style>
-
     </Application.Styles>
 
     <!-- Tray Icon Definitions -->

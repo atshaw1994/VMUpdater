@@ -1,0 +1,24 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:viewmodels="clr-namespace:VMUpdater.ViewModels"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <viewmodels:MainViewModel x:Key="DesignMainViewModel" SearchText="">
+        <viewmodels:MainViewModel.FilteredVirtualMachines>
+            <viewmodels:VirtualMachineViewModel
+                DisplayName="Mock Virtual Machine"
+                IsExpanded="False"/>
+            <viewmodels:VirtualMachineViewModel
+                DisplayName="Mock Virtual Machine"
+                Username="username"
+                Password="password"
+                ScheduleDay="Monday"
+                IsExpanded="True" 
+                IsUpdating="True"
+                UpdateProgress="50.0">
+                <viewmodels:VirtualMachineViewModel.ScheduleTime>
+                    <system:DateTime>2026-08-04T00:00:00</system:DateTime>
+                </viewmodels:VirtualMachineViewModel.ScheduleTime>
+            </viewmodels:VirtualMachineViewModel>
+        </viewmodels:MainViewModel.FilteredVirtualMachines>
+    </viewmodels:MainViewModel>
+</ResourceDictionary>
