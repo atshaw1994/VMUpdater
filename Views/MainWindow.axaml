@@ -151,8 +151,10 @@
                         <MenuItem Header="Export" Command="{Binding ExportCommand}" />
                         <Separator />
                         <MenuItem Header="Show Log" Command="{Binding ShowLogCommand}" />
-                        <Separator />
+                        <!-- Disabled until preferences are implemented 
+                        <Separator/>
                         <MenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
+                        -->
                         <Separator />
                         <MenuItem Header="About" Command="{Binding AboutCommand}" />
                         <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
