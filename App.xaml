@@ -14,76 +14,11 @@
             <Setter Property="FontSize" Value="16"/>
         </Style>
 
-        <!-- Custom ProgressBar Styling -->
-        <Style Selector="ProgressBar">
-            <Setter Property="Height" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Template">
-                <ControlTemplate TargetType="ProgressBar">
-                    <Grid x:Name="TemplateRoot">
-                        <!-- 1. Track Background -->
-                        <Border x:Name="PART_Track" 
-                                Background="{TemplateBinding Background}" 
-                                CornerRadius="2"/>
-
-                        <!-- 2. Deterministic Fill Container (Must be Border for PART_Indicator) -->
-                        <Border x:Name="PART_Indicator" 
-                                Background="{TemplateBinding Foreground}"
-                                HorizontalAlignment="Left" 
-                                CornerRadius="3"
-                                ClipToBounds="True">
-                            
-                            <!-- Sheen Overlay Path -->
-                            <Path x:Name="IndicatorSheen">
-                                <Path.Fill>
-                                    <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                                        <GradientStop Color="#00FFFFFF" Offset="0"/>
-                                        <GradientStop Color="#50FFFFFF" Offset="0.5"/>
-                                        <GradientStop Color="#00FFFFFF" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Path.Fill>
-                                <Path.Data>
-                                    M0,8 l8,-8 h50 l-8,8z
-                                </Path.Data>
-                                <Path.RenderTransform>
-                                    <TranslateTransform X="-20" />
-                                </Path.RenderTransform>
-                            </Path>
-                        </Border>
-
-                        <!-- 3. Indeterminate Track Layer -->
-                        <Grid x:Name="IndeterminateRoot" 
-                              ClipToBounds="True" 
-                              IsVisible="False">
-                            <Border x:Name="IndeterminatePill"
-                                    Background="{TemplateBinding Foreground}"
-                                    CornerRadius="4"
-                                    Width="30"
-                                    HorizontalAlignment="Left">
-                                <Border.RenderTransform>
-                                    <TranslateTransform X="-30" />
-                                </Border.RenderTransform>
-                            </Border>
-                        </Grid>
-                    </Grid>
-                </ControlTemplate>
-            </Setter>
-        </Style>
-
-        <!-- Indeterminate Toggle State -->
-        <Style Selector="ProgressBar:indeterminate /template/ Grid#PART_Indicator">
-            <Setter Property="IsVisible" Value="False"/>
-        </Style>
-        <Style Selector="ProgressBar:indeterminate /template/ Grid#IndeterminateRoot">
-            <Setter Property="IsVisible" Value="True"/>
-        </Style>
-
         <!-- Dynamic ScrollViewer Margin Helper for ItemsControl -->
         <Style Selector="ItemsControl.WithScrollBarMargin">
             <Setter Property="Margin" Value="0,0,0,0"/>
         </Style>
+
         <!-- Avalonia uses ScrollViewer state pseudo-classes rather than ComputedScrollBarVisibility -->
         <Style Selector="ScrollViewer:vertical-scrollbar-visible ItemsControl.WithScrollBarMargin">
             <Setter Property="Margin" Value="0,0,15,0"/>

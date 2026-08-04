@@ -195,6 +195,9 @@ namespace VMUpdater.ViewModels
         public partial bool IsUpdating { get; set; }
 
         [ObservableProperty]
+        public partial bool IsAutoUpdate { get; set; }
+
+        [ObservableProperty]
         public partial double UpdateProgress { get; set; }
 
         [ObservableProperty]

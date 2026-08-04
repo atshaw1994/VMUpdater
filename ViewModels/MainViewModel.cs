@@ -71,6 +71,9 @@ namespace VMUpdater.ViewModels
         public partial bool IsLogVisible { get; set; } = false;
 
         [ObservableProperty]
+        public partial bool IsAutoMode { get; set; } = false;
+
+        [ObservableProperty]
         public partial bool IsPreferencesVisible { get; set; } = false;
 
         [ObservableProperty]

@@ -74,12 +74,15 @@ namespace VMUpdater
                 if (!string.Equals(now.DayOfWeek.ToString(), vm.ScheduleDay, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (vm.Model.NextUpdate != DateTime.MinValue &&
-                    now.Hour == vm.Model.NextUpdate.Hour &&
-                    now.Minute == vm.Model.NextUpdate.Minute)
+                if (_viewModel.IsAutoMode && vm.IsAutoUpdate)
                 {
-                    _viewModel.LogMessage($"Automated Cron Schedule validated for [{vm.DisplayName}]. Requesting update...");
-                    _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
+                    if (vm.Model.NextUpdate != DateTime.MinValue &&
+                        now.Hour == vm.Model.NextUpdate.Hour &&
+                        now.Minute == vm.Model.NextUpdate.Minute)
+                    {
+                        _viewModel.LogMessage($"Automated Cron Schedule validated for [{vm.DisplayName}]. Requesting update...");
+                        _viewModel.EnqueueUpdateRequest(vm, forceUpdate: false);
+                    } 
                 }
             }
         }
