@@ -112,7 +112,9 @@
                             </NativeMenu>
                         </NativeMenuItem>
                         <NativeMenuItemSeparator />
+                        <!-- Disabled until preferences are implemented
                         <NativeMenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
+                        -->
                         <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
                     </NativeMenu>
                 </TrayIcon.Menu>
@@ -128,7 +130,9 @@
                     <NativeMenuItem Header="Show Log" Command="{Binding ShowLogCommand}" />
                     <NativeMenuItem Header="Update All" Command="{Binding UpdateAllCommand}" />
                     <NativeMenuItemSeparator />
+                    <!-- Disabled until preferences are implemented
                     <NativeMenuItem Header="Preferences" Command="{Binding ShowPreferencesCommand}" />
+                    -->
                     <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
                 </NativeMenu>
             </NativeMenuItem>
