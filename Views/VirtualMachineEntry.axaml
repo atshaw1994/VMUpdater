@@ -9,184 +9,123 @@
              MinWidth="621">
              
     <Design.DataContext>
-        <viewmodels:VirtualMachineViewModel 
-            DisplayName="New Virtual Machine"
-            VMPath="Path/To/VM"
-            Username="username"
-            Password="password"
-            ScheduleDay="Monday"
-            IsExpanded="True" 
-            IsUpdating="True"
-            UpdateProgress="50.0"/>
+        <StaticResource ResourceKey="DesignVirtualMachineViewModel" />
     </Design.DataContext>
 
-    <Grid Margin="2">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Expander Margin="2" IsExpanded="{Binding IsExpanded}"
+              HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Stretch">
+        <Expander.ContentTransition>
+                <PageSlide Duration="0:0:0.1" Orientation="Vertical" />
+        </Expander.ContentTransition>
+        <Expander.Header>
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <ToggleSwitch 
+                    Margin="0,-4,0,0"
+                    IsChecked="{Binding IsUpdateEnabled}" 
+                    OnContent="" 
+                    OffContent=""/>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="46" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="1"
+                    IsHitTestVisible="False" 
+                    FontSize="16" 
+                    VerticalAlignment="Center">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} ({1})">
+                            <Binding Path="DisplayName"/>
+                            <Binding Path="GuestOSType.Name"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
 
-            <Button 
-                Grid.ColumnSpan="3"
-                Height="40" 
-                HorizontalAlignment="Stretch" 
-                HorizontalContentAlignment="Right" 
-                Command="{Binding ToggleExpandCommand}">
-                    <ic:FluentIcon Icon="ChevronDown" IconVariant="Filled" IconSize="Size12" />
-            </Button>
+                <ProgressBar 
+                    Grid.Column="2"
+                    Width="75" MinWidth="75"
+                    Value="{Binding UpdateProgress}"
+                    IsVisible="{Binding IsUpdating}"/>
+            </Grid>
+      </Expander.Header>
+        <StackPanel Margin="0,-8,0,0" IsEnabled="{Binding !IsUpdating}">
+            <!-- Path Row -->
+            <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,4">
+                <TextBlock Text="Path:" Margin="0,0,47,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" PlaceholderText="Path/To/VM" Text="{Binding VMPath}"/>
+                <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding BrowseCommand}">
+                    <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size12" />
+                </Button>
+            </Grid>
 
-            <ToggleSwitch 
-                Margin="6,-4,0,0"
-                IsChecked="{Binding IsAutoUpdate}" 
-                OnContent="" 
-                OffContent=""/>
+            <!-- Metadata Form Grid -->
+            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *, Auto, *">
+                <TextBlock Text="Hypervisor:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1" 
+                          Margin="0,4" 
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Hypervisors}" 
+                          SelectedItem="{Binding HypervisorType}"
+                          DisplayMemberBinding="{Binding Name}"/>
 
-            <TextBlock 
-                Grid.Column="1"
-                IsHitTestVisible="False" 
-                FontSize="16" 
-                VerticalAlignment="Center" 
-                Margin="8,0">
-                <TextBlock.Text>
-                    <MultiBinding StringFormat="{}{0} ({1})">
-                        <Binding Path="DisplayName"/>
-                        <Binding Path="GuestOSType.Name"/>
-                    </MultiBinding>
-                </TextBlock.Text>
-            </TextBlock>
+                <TextBlock Text="Guest OS:" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="GuestOSComboBox"
+                          Grid.Column="3"
+                          Margin="0,4"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding GuestOSTypes}"
+                          SelectedItem="{Binding GuestOSType}"
+                          DisplayMemberBinding="{Binding Name}"/>
 
-            <ProgressBar x:Name="UpdateProgressBar"
-                Grid.Column="2"
-                Width="75" MinWidth="75"
-                HorizontalAlignment="Right"
-                Margin="0,0,48,0"
-                Value="{Binding UpdateProgress}"
-                IsVisible="{Binding IsUpdating}"/>
+                <TextBlock Text="Username:" Grid.Row="1" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Margin="0,4" VerticalAlignment="Center" Text="{Binding Username}"/>
 
-        </Grid>
+                <TextBlock Text="Password:" Grid.Row="1" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="3" Margin="0,4" VerticalAlignment="Center" Text="{Binding Password}"/>
 
-        <Border x:Name="DetailsPanel"
-                Grid.Row="1"
-                Background="{DynamicResource SystemControlPageBackgroundChromeMediumLowBrush}" 
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" 
-                IsVisible="{Binding IsExpanded}"
-                Opacity=".8"
-                Margin="16,0,3,8"
-                BorderThickness="1,0,1,1"
-                CornerRadius="0,0,4,4">
-            <StackPanel Margin="4,8,4,4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Path:" Margin="0,0,47,0" VerticalAlignment="Center"/>
-                    <TextBox Grid.Column="1" PlaceholderText="Path/To/VM" Text="{Binding VMPath}"/>
-                    <Button Grid.Column="2" Margin="8,0,0,0" Command="{Binding BrowseCommand}">
-                        <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size12" />
+                <TextBlock Text="Every" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="ScheduleComboBox" 
+                          Grid.Column="1" 
+                          Grid.Row="2"
+                          Margin="0,4"
+                          HorizontalAlignment="Stretch"
+                          SelectedValue="{Binding ScheduleDay}">
+                    <x:String>Monday</x:String>
+                    <x:String>Tuesday</x:String>
+                    <x:String>Wednesday</x:String>
+                    <x:String>Thursday</x:String>
+                    <x:String>Friday</x:String>
+                    <x:String>Saturday</x:String>
+                    <x:String>Sunday</x:String>
+                </ComboBox>
+
+                <TextBlock Text="at" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
+                <local:TimePicker Grid.Column="3" Grid.Row="2" Margin="0,4" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime}"/>
+            </Grid>
+
+            <!-- Actions Footer -->
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LastUpdateDisplayText}" />
+                    <TextBlock Text="{Binding NextUpdateDisplayText}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Grid.Column="1" Spacing="4">
+                    <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right"
+                            Command="{ReflectionBinding $parent[Window].DataContext.RemoveVirtualMachineCommand}"
+                            CommandParameter="{Binding}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ic:FluentIcon Icon="Delete" IconVariant="Regular" IconSize="Size12" />
+                            <TextBlock Text="Delete" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Button>
-                    
-                </Grid>
 
-                <Grid Margin="0,2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="Hypervisor:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" 
-                              Margin="0,4" 
-                              HorizontalAlignment="Stretch"
-                              ItemsSource="{Binding Hypervisors}" 
-                              SelectedItem="{Binding HypervisorType}"
-                              DisplayMemberBinding="{Binding Name}"/>
-
-                    <TextBlock Text="Guest OS:" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="GuestOSComboBox"
-                              Grid.Column="3"
-                              Margin="0,4"
-                              HorizontalAlignment="Stretch"
-                              ItemsSource="{Binding GuestOSTypes}"
-                              SelectedItem="{Binding GuestOSType}"
-                              DisplayMemberBinding="{Binding Name}"/>
-
-                    <TextBlock Text="Username:" Grid.Row="1" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="UsernameTextBox" Grid.Row="1" Grid.Column="1" Margin="0,4" VerticalAlignment="Center" Text="{Binding Username}"/>
-
-                    <TextBlock Text="Password:" Grid.Row="1" Grid.Column="2" Margin="8,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="3" Margin="0,4" VerticalAlignment="Center" Text="{Binding Password}"/>
-
-                    <TextBlock Text="Every" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
-
-                    <ComboBox x:Name="ScheduleComboBox" 
-                              Grid.Column="1" 
-                              Grid.Row="2"
-                              Margin="0,4"
-                              HorizontalAlignment="Stretch"
-                              SelectedValue="{Binding ScheduleDay}">
-                        <x:String>Monday</x:String>
-                        <x:String>Tuesday</x:String>
-                        <x:String>Wednesday</x:String>
-                        <x:String>Thursday</x:String>
-                        <x:String>Friday</x:String>
-                        <x:String>Saturday</x:String>
-                        <x:String>Sunday</x:String>
-                    </ComboBox>
-
-                    <TextBlock Text="at" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
-                    <local:TimePicker Grid.Column="3" Grid.Row="2" Margin="0,4" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime}"/>
-                </Grid>
-
-                <Grid Margin="0,2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="{Binding LastUpdateDisplayText}" />
-                        <TextBlock Grid.Row="1" Text="{Binding NextUpdateDisplayText}" />
-                    </Grid>
-
-                    <StackPanel Orientation="Horizontal" Grid.Column="1">
-                        <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="4"
-                                Command="{ReflectionBinding $parent[Window].DataContext.RemoveVirtualMachineCommand}"
-                                CommandParameter="{Binding}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <ic:FluentIcon Icon="Delete" IconVariant="Regular" IconSize="Size12" />
-                                <TextBlock Text="Delete" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="4" Command="{Binding UpdateNowCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Regular" IconSize="Size12" />
-                                <TextBlock Text="Update" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </Border>
-    </Grid>
+                    <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Command="{Binding UpdateNowCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Regular" IconSize="Size12" />
+                            <TextBlock Text="Update" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+  </Expander>
 </UserControl>

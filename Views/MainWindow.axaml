@@ -4,13 +4,11 @@
         xmlns:viewmodels="using:VMUpdater.ViewModels"
         xmlns:views="using:VMUpdater.Views"
         xmlns:ic="using:FluentIcons.Avalonia"
-        xmlns:models="using:VMUpdater.Models"
-        xmlns:system="using:System"
         x:DataType="viewmodels:MainViewModel"
         x:Name="RootWindow"
         Closing="Window_Closing"
         TransparencyLevelHint="Mica, AcrylicBlur"
-        Background="Transparent"
+        Background="{DynamicResource WindowBackgroundBrush}"
         RequestedThemeVariant="Default"
         Title="VMUpdater" Height="450" Width="800"
         MinWidth="650" MinHeight="400">
@@ -24,22 +22,10 @@
         <StaticResource ResourceKey="DesignMainViewModel" />
     </Design.DataContext>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="40,Auto,*,Auto">
 
         <!-- Toolbar -->
-        <Grid Margin="8,8,8,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
+        <Grid Margin="8,8,8,0" ColumnDefinitions="*,Auto,Auto">
             <!-- Search -->
             <Grid Margin="0,0,8,0" VerticalAlignment="Center" ClipToBounds="True">
                 <!-- Collapsed Search Button -->
@@ -201,12 +187,7 @@
         <Border Grid.RowSpan="3" 
                 Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
                 IsVisible="{Binding IsLogVisible}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
+            <Grid RowDefinitions="Auto,*">
                 <Button Height="32" Width="32" Margin="4,0" 
                         HorizontalAlignment="Right" HorizontalContentAlignment="Right"
                         Command="{Binding ToggleLogCommand}">
@@ -220,7 +201,7 @@
                            Margin="8"/>
 
                 <ScrollViewer Grid.Row="1" Margin="6,8" VerticalScrollBarVisibility="Auto">
-                    <TextBox Text="{Binding LogText}"/>
+                    <TextBox Text="{Binding LogText}" Loaded="LogTextBox_Loaded" TextChanged="LogTextBox_TextChanged"/>
                 </ScrollViewer>
             </Grid>
         </Border>
@@ -229,12 +210,7 @@
         <Border Grid.RowSpan="3" 
                 Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
                 IsVisible="{Binding IsPreferencesVisible}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
+            <Grid RowDefinitions="Auto,*">
                 <Button Height="32" Width="32" Margin="4,0" 
                         HorizontalAlignment="Right" HorizontalContentAlignment="Right"
                         Command="{Binding TogglePreferencesCommand}">
@@ -259,16 +235,11 @@
 
         <!-- Status Bar -->
         <Border Grid.Row="3" 
-                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="4,16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
+            <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" 
                            Text="{Binding StatusMessage}" 
                            VerticalAlignment="Center" 
@@ -280,7 +251,6 @@
                             Margin="2"
                             IsVisible="{Binding !IsUpdating}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Filled" IconSize="Size12" />
                             <TextBlock Text="Update All" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

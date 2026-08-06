@@ -28,7 +28,7 @@ namespace VMUpdater.Models
         public DateTime ScheduleTime { get; set; } = DateTime.MinValue;
         public DateTime LastUpdate { get; set; } = DateTime.MinValue;
         public DateTime NextUpdate { get; set; } = DateTime.MinValue;
-        public bool IsAutoUpdate { get; set; } = false;
+        public bool IsUpdateEnabled { get; set; } = false;
 
     }
 }
