@@ -30,13 +30,15 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentAvaloniaUI" Version="3.0.2" />
-		<PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
+		<PackageReference Include="NUnit" Version="4.6.1" />
+		<PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
+		<PackageReference Include="System.Resources.Extensions" Version="10.0.10" />
 		<PackageReference Include="Avalonia" Version="12.1.1" />
 		<PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="FluentIcons.Avalonia" Version="2.1.333" />
+		<PackageReference Include="FluentIcons.Avalonia" Version="2.1.334" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
 	</ItemGroup>
 
@@ -87,24 +89,7 @@
 		
 		<Delete Files="$(PublishDir)VMUpdater.dll.config" Condition="Exists('$(PublishDir)VMUpdater.dll.config')" />
 
-		<WriteLinesToFile File="$(AppBundleDir)/Contents/Info.plist" Overwrite="true" Lines="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
-&lt;plist version=&quot;1.0&quot;&gt;
-&lt;dict&gt;
-    &lt;key&gt;CFBundleExecutable&lt;/key&gt;
-    &lt;string&gt;VMUpdater&lt;/string&gt;
-    &lt;key&gt;CFBundleIdentifier&lt;/key&gt;
-    &lt;string&gt;com.atshaw1994.vmupdater&lt;/string&gt;
-    &lt;key&gt;CFBundleName&lt;/key&gt;
-    &lt;string&gt;VMUpdater&lt;/string&gt;
-    &lt;key&gt;CFBundlePackageType&lt;/key&gt;
-    &lt;string&gt;APPL&lt;/string&gt;
-    &lt;key&gt;CFBundleShortVersionString&lt;/key&gt;
-    &lt;string&gt;1.0.0&lt;/string&gt;
-    &lt;key&gt;CFBundleIconFile&lt;/key&gt;
-    &lt;string&gt;VMUpdater.icns&lt;/string&gt;
-&lt;/dict&gt;
-&lt;/plist&gt;" />
+		<WriteLinesToFile File="$(AppBundleDir)/Contents/Info.plist" Overwrite="true" Lines="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#xD;&#xA;&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;&#xD;&#xA;&lt;plist version=&quot;1.0&quot;&gt;&#xD;&#xA;&lt;dict&gt;&#xD;&#xA;    &lt;key&gt;CFBundleExecutable&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleIdentifier&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;com.atshaw1994.vmupdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleName&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundlePackageType&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;APPL&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleShortVersionString&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;1.0.0&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleIconFile&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater.icns&lt;/string&gt;&#xD;&#xA;&lt;/dict&gt;&#xD;&#xA;&lt;/plist&gt;" />
 	</Target>
 
 	<!-- Custom Publish Shortcut: Publish-Linux -->

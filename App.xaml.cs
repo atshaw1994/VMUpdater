@@ -74,7 +74,7 @@ namespace VMUpdater
                 if (!string.Equals(now.DayOfWeek.ToString(), vm.ScheduleDay, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (vm.IsAutoUpdate &&
+                if (vm.IsUpdateEnabled &&
                     vm.Model.NextUpdate != DateTime.MinValue &&
                     now.Hour == vm.Model.NextUpdate.Hour &&
                     now.Minute == vm.Model.NextUpdate.Minute)

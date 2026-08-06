@@ -199,12 +199,12 @@ namespace VMUpdater.ViewModels
         public partial bool IsUpdating { get; set; }
 
         [ObservableProperty]
-        public partial bool IsAutoUpdate { get; set; }
+        public partial bool IsUpdateEnabled { get; set; }
 
-        partial void OnIsAutoUpdateChanged(bool value)
+        partial void OnIsUpdateEnabledChanged(bool value)
         {
             if (Model == null) return;
-            Model.IsAutoUpdate = value;
+            Model.IsUpdateEnabled = value;
             _ = SaveAsync();
         }
 
@@ -322,12 +322,8 @@ namespace VMUpdater.ViewModels
 
         partial void OnIsExpandedChanged(bool value)
         {
-            ExpandedIcon = value ? "\uE70E" : "\uE70D";
             if (value && _ctx != null) _ctx.OnExpanded?.Invoke(this);
         }
-
-        [ObservableProperty]
-        public partial string ExpandedIcon { get; set; } = "\uE70D";
 
         public DateTime LastUpdate
         {

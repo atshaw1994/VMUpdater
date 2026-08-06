@@ -22,6 +22,7 @@ using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
 using VMUpdater.Views;
+using System.Linq;
 
 namespace VMUpdater.ViewModels
 {
@@ -35,8 +36,8 @@ namespace VMUpdater.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly MainServicesContext _services;
-        private readonly string _logFilePath;
-        private readonly ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
+        public string _logFilePath;
+        public ConcurrentQueue<(VirtualMachineViewModel VM, bool ForceUpdate)> _updateQueue = new();
 
         public ObservableCollection<VirtualMachineViewModel> VirtualMachines { get; } = [];
         public ObservableCollection<VirtualMachineViewModel> FilteredVirtualMachines { get; } = [];
@@ -81,7 +82,7 @@ namespace VMUpdater.ViewModels
         {
             if (!value)
                 foreach (var vm in VirtualMachines)
-                    vm.IsAutoUpdate = false;
+                    vm.IsUpdateEnabled = false;
         }
 
         [ObservableProperty]
@@ -117,7 +118,7 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private static async Task AboutAsync()
         {
-            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is { } mainWindow)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow })
             {
                 var aboutWindow = new AboutDialog();
                 await aboutWindow.ShowDialog(mainWindow);
@@ -137,10 +138,10 @@ namespace VMUpdater.ViewModels
             {
                 Title = "Export Configuration Package",
                 SuggestedFileName = "VMUpdaterPackage.zip",
-                FileTypeChoices = new[]
-                {
+                FileTypeChoices =
+                [
                     new FilePickerFileType("Zip Files") { Patterns = ["*.zip"] }
-                }
+                ]
             });
 
             if (file == null) return;
@@ -197,13 +198,13 @@ namespace VMUpdater.ViewModels
             {
                 Title = "Import Configuration Package",
                 AllowMultiple = false,
-                FileTypeFilter = new[]
-                {
-                    new FilePickerFileType("Zip Files") { Patterns = new[] { "*.zip" } }
-                }
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("Zip Files") { Patterns = ["*.zip"] }
+                ]
             });
 
-            var file = files.FirstOrDefault();
+            using var file = files[0];
             if (file == null) return;
 
             string filePath = file.Path.LocalPath;
@@ -281,7 +282,7 @@ namespace VMUpdater.ViewModels
         [RelayCommand]
         private static void ShowMainWindow()
         {
-            if ((Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow is { } mainWindow)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow })
             {
                 mainWindow.Show();
                 mainWindow.WindowState = WindowState.Normal;
@@ -386,7 +387,7 @@ namespace VMUpdater.ViewModels
         private void UpdateAll()
         {
             LogMessage("User initiated update for all VMs.");
-            foreach (var vm in VirtualMachines)
+            foreach (var vm in VirtualMachines.Where(vm => vm.IsUpdateEnabled))
                 EnqueueUpdateRequest(vm, forceUpdate: true);
         }
         private bool CanUpdateAll() => !IsUpdating && VirtualMachines.Any();
@@ -409,7 +410,7 @@ namespace VMUpdater.ViewModels
 
         #endregion
 
-        private void RefreshFilteredMachines()
+        public void RefreshFilteredMachines()
         {
             FilteredVirtualMachines.Clear();
             var query = VirtualMachines.AsEnumerable();
@@ -611,7 +612,7 @@ namespace VMUpdater.ViewModels
                 vmViewModel.HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
                 vmViewModel.GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
-                vmViewModel.IsAutoUpdate = model.IsAutoUpdate;
+                vmViewModel.IsUpdateEnabled = model.IsUpdateEnabled;
                 vmViewModel.CalculateNextScheduledUpdate();
 
                 if (!Dispatcher.UIThread.CheckAccess())
@@ -628,7 +629,7 @@ namespace VMUpdater.ViewModels
             UpdateAllCommand.NotifyCanExecuteChanged();
         }
 
-        private async Task InitializeHypervisorsProfilesAsync()
+        public async Task InitializeHypervisorsProfilesAsync()
         {
             var hypervisors = await _services.HypervisorRepository.LoadAllAsync();
 
@@ -640,7 +641,7 @@ namespace VMUpdater.ViewModels
             });
         }
 
-        private async Task InitializeGuestOSTypesAsync()
+        public async Task InitializeGuestOSTypesAsync()
         {
             var guestOSTypes = await _services.GuestOSRepository.LoadAllAsync();
 

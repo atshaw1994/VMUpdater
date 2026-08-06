@@ -17,7 +17,6 @@
 using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
-using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
 using static VMUpdater.Services.Orchestration.GenericHypervisorUpdater;
 
 namespace VMUpdater.Services

@@ -17,7 +17,6 @@
 using System.Diagnostics;
 using System.IO;
 using VMUpdater.Models;
-using VMUpdater.Services.Orchestration.VMUpdater.Services.Orchestration;
 
 namespace VMUpdater.Services.Orchestration
 {
@@ -38,12 +37,13 @@ namespace VMUpdater.Services.Orchestration
             Func<string, string, string, Task<int>> RunProcessAsync
         );
 
-        public async Task<bool> UpdateVMAsync(VMUpdateContext ctx, string scriptCommand)
+        public virtual async Task<bool> UpdateVMAsync(VMUpdateContext ctx, string scriptCommand, CancellationToken cancellationToken = default)
         {
             string vmIdentifier = Path.GetFileNameWithoutExtension(ctx.VM.VMPath);
 
             // 1. Boot VM
-            _ = await StartVMAndAwaitReadyAsync(ctx, vmIdentifier);
+            bool isStarted = await StartVMAndAwaitReadyAsync(ctx, vmIdentifier, cancellationToken);
+            if (!isStarted) return false;
 
             // 2. Network / Readiness Check
             if (!string.IsNullOrWhiteSpace(ctx.GuestOS.NetworkCheckArgumentTemplate))
@@ -57,7 +57,7 @@ namespace VMUpdater.Services.Orchestration
                     LogText = $"Failed: No network check argument template provided for guest OS '{ctx.GuestOS.Name}'!",
                     StatusText = "Update failed."
                 });
-                await Task.Delay(2000); // Delay to allow user to read the message
+                await Task.Delay(2000, cancellationToken); // Delay to allow user to read the message
                 return false;
             }
 
@@ -65,6 +65,7 @@ namespace VMUpdater.Services.Orchestration
             ctx.ReportProgress(new UpdateProgressReport
             {
                 ProgressDelta = 75,
+                LogText = $"Executing guest updates",
                 StatusText = "Running guest updates..."
             });
 
@@ -86,7 +87,7 @@ namespace VMUpdater.Services.Orchestration
             return scriptCode == 0;
         }
 
-        private static async Task<bool> StartVMAndAwaitReadyAsync(VMUpdateContext ctx, string vmIdentifier)
+        private static async Task<bool> StartVMAndAwaitReadyAsync(VMUpdateContext ctx, string vmIdentifier, CancellationToken cancellationToken)
         {
             // 1. Boot VM
             ctx.ReportProgress(new UpdateProgressReport
@@ -109,7 +110,7 @@ namespace VMUpdater.Services.Orchestration
             });
 
             // 1.5 Wait for VM to boot/reach ready state
-            bool isReady = await WaitForGuestReadyAsync(ctx);
+            bool isReady = await WaitForGuestReadyAsync(ctx, cancellationToken);
 
             if (!isReady)
             {
@@ -123,16 +124,16 @@ namespace VMUpdater.Services.Orchestration
             return true;
         }
 
-        private static async Task<bool> WaitForGuestReadyAsync(VMUpdateContext ctx)
+        private static async Task<bool> WaitForGuestReadyAsync(VMUpdateContext ctx, CancellationToken cancellationToken)
         {
-            var stopwatch = Stopwatch.StartNew();
+            const int maxRetries = 10;
+            const int retryDelayMs = 3000;
+            int retryCount = 0;
 
-            // Use a lightweight guest check command (e.g., VBoxManage guestcontrol check status,
-            // or executing a simple 'echo ready' command inside the guest via hypervisor tools)
             string checkCommand = "echo desktop_ready";
             string readyArgs = CommandTemplateExpander.ExpandArguments(ctx.Hypervisor.RunScriptArgumentTemplate, ctx.VM, checkCommand);
 
-            while (stopwatch.Elapsed < TimeSpan.FromMinutes(3))
+            while (retryCount < maxRetries && !cancellationToken.IsCancellationRequested)
             {
                 int exitCode = await ctx.RunProcessAsync(ctx.VM.VMPath, ctx.Hypervisor.ExecutablePath, readyArgs);
 
@@ -141,10 +142,22 @@ namespace VMUpdater.Services.Orchestration
                     return true; // Guest agent responded and executed command successfully
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                retryCount++;
+
+                if (retryCount < maxRetries)
+                {
+                    try
+                    {
+                        await Task.Delay(retryDelayMs, cancellationToken);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        return false;
+                    }
+                }
             }
 
-            return false; // Timed out waiting for desktop/agent readiness
+            return false; // Timed out or canceled waiting for desktop readiness
         }
 
         private static async Task<bool> CheckNetworkReadinessAsync(VMUpdateContext ctx)
