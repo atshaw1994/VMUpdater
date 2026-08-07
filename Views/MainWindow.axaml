@@ -8,9 +8,9 @@
         x:Name="RootWindow"
         Closing="Window_Closing"
         TransparencyLevelHint="Mica, AcrylicBlur"
-        Background="{DynamicResource WindowBackgroundBrush}"
+        Background="Transparent"
         RequestedThemeVariant="Default"
-        Title="VMUpdater" Height="450" Width="800"
+        Title="VMUpdater" Height="450" Width="650"
         MinWidth="650" MinHeight="400">
     <Window.DataTemplates>
         <DataTemplate DataType="viewmodels:VirtualMachineViewModel">
@@ -23,7 +23,6 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="40,Auto,*,Auto">
-
         <!-- Toolbar -->
         <Grid Margin="8,8,8,0" ColumnDefinitions="*,Auto,Auto">
             <!-- Search -->
@@ -115,7 +114,7 @@
             <!-- Auto Mode Toggle -->
             <ToggleSwitch 
                 Grid.Column="1" 
-                Margin="0,-8.7,0,0"
+                Margin="0,-8,0,0"
                 IsChecked="{Binding IsAutoMode}" 
                 OnContent="" 
                 OffContent=""/>
@@ -170,7 +169,7 @@
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="0,0,16,8" />
+                        <Setter Property="Margin" Value="0,0,16,4" />
                         <Setter Property="Background" Value="Transparent" />
                         <Setter Property="Template">
                             <ControlTemplate>
@@ -250,9 +249,7 @@
                             Padding="10,3"
                             Margin="2"
                             IsVisible="{Binding !IsUpdating}">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="Update All" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <TextBlock Text="Update All" VerticalAlignment="Center"/>
                     </Button>
 
                     <StackPanel Orientation="Horizontal" 

@@ -9,22 +9,20 @@
              MinWidth="621">
              
     <Design.DataContext>
-        <StaticResource ResourceKey="DesignVirtualMachineViewModel" />
+        <StaticResource ResourceKey="DesignVirtualMachineViewModel"/>
     </Design.DataContext>
 
-    <Expander Margin="2" IsExpanded="{Binding IsExpanded}"
+    <Expander Margin="2,2,2,0" IsExpanded="{Binding IsExpanded}"
               HorizontalAlignment="Stretch"
-              HorizontalContentAlignment="Stretch">
-        <Expander.ContentTransition>
-                <PageSlide Duration="0:0:0.1" Orientation="Vertical" />
-        </Expander.ContentTransition>
+              HorizontalContentAlignment="Stretch"
+              CornerRadius="6">
         <Expander.Header>
             <Grid ColumnDefinitions="Auto, *, Auto">
-                <ToggleSwitch 
+                <ToggleSwitch
                     Margin="0,-4,0,0"
-                    IsChecked="{Binding IsUpdateEnabled}" 
-                    OnContent="" 
-                    OffContent=""/>
+                    OnContent="" OffContent=""
+                    IsChecked="{Binding IsUpdateEnabled}">
+                </ToggleSwitch>
 
                 <TextBlock
                     Grid.Column="1"
@@ -45,7 +43,7 @@
                     Value="{Binding UpdateProgress}"
                     IsVisible="{Binding IsUpdating}"/>
             </Grid>
-      </Expander.Header>
+        </Expander.Header>
         <StackPanel Margin="0,-8,0,0" IsEnabled="{Binding !IsUpdating}">
             <!-- Path Row -->
             <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,4">
@@ -101,27 +99,24 @@
                 <local:TimePicker Grid.Column="3" Grid.Row="2" Margin="0,4" HorizontalAlignment="Center" SelectedTime="{Binding ScheduleTime}"/>
             </Grid>
 
-            <!-- Actions Footer -->
+            <!-- Footer -->
             <Grid ColumnDefinitions="*, Auto">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding LastUpdateDisplayText}" />
-                    <TextBlock Text="{Binding NextUpdateDisplayText}" />
+                    <TextBlock Text="{Binding LastUpdateDisplayText}" FontStyle="Italic" Opacity="0.2"/>
+                    <TextBlock Text="{Binding NextUpdateDisplayText}" FontStyle="Italic" Opacity="0.2"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Grid.Column="1" Spacing="4">
-                    <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right"
-                            Command="{ReflectionBinding $parent[Window].DataContext.RemoveVirtualMachineCommand}"
-                            CommandParameter="{Binding}">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <Button Command="{Binding DeleteCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <ic:FluentIcon Icon="Delete" IconVariant="Regular" IconSize="Size12" />
-                            <TextBlock Text="Delete" VerticalAlignment="Center"/>
+                            <TextBlock Text="Delete"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Height="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Command="{Binding UpdateNowCommand}">
+                    <Button Command="{Binding UpdateNowCommand}" IsEnabled="{Binding IsUpdateEnabled}">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <ic:FluentIcon Icon="ArrowCircleDown" IconVariant="Regular" IconSize="Size12" />
-                            <TextBlock Text="Update" VerticalAlignment="Center"/>
+                            <TextBlock Text="Update"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>

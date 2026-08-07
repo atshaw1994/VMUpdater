@@ -18,6 +18,7 @@
         ScheduleDay="Monday"
         IsExpanded="True" 
         IsUpdating="True"
+        IsUpdateEnabled="True"
         UpdateProgress="50.0">
         <viewmodels:VirtualMachineViewModel.ScheduleTime>
             <system:DateTime>2026-08-04T00:00:00</system:DateTime>

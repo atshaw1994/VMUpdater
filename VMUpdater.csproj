@@ -86,7 +86,7 @@
 		<Move SourceFiles="$(PublishDir)VMUpdater" DestinationFolder="$(MacOSDir)" Condition="Exists('$(PublishDir)VMUpdater')" />
 		<Move SourceFiles="$(PublishDir)VMUpdater.pdb" DestinationFolder="$(MacOSDir)" Condition="Exists('$(PublishDir)VMUpdater.pdb')" />
 		<Copy SourceFiles="VMUpdater.icns" DestinationFolder="$(ResourcesDir)" Condition="Exists('VMUpdater.icns')" />
-		
+
 		<Delete Files="$(PublishDir)VMUpdater.dll.config" Condition="Exists('$(PublishDir)VMUpdater.dll.config')" />
 
 		<WriteLinesToFile File="$(AppBundleDir)/Contents/Info.plist" Overwrite="true" Lines="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#xD;&#xA;&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;&#xD;&#xA;&lt;plist version=&quot;1.0&quot;&gt;&#xD;&#xA;&lt;dict&gt;&#xD;&#xA;    &lt;key&gt;CFBundleExecutable&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleIdentifier&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;com.atshaw1994.vmupdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleName&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundlePackageType&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;APPL&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleShortVersionString&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;1.0.0&lt;/string&gt;&#xD;&#xA;    &lt;key&gt;CFBundleIconFile&lt;/key&gt;&#xD;&#xA;    &lt;string&gt;VMUpdater.icns&lt;/string&gt;&#xD;&#xA;&lt;/dict&gt;&#xD;&#xA;&lt;/plist&gt;" />

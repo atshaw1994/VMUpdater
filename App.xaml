@@ -2,7 +2,8 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:viewmodels="using:VMUpdater.ViewModels"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Default"
+             Name="VMUpdater">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

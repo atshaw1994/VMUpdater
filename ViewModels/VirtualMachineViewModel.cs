@@ -43,6 +43,9 @@ namespace VMUpdater.ViewModels
         private readonly VMViewModelContext _ctx;
 
         public Action<VirtualMachineViewModel, bool>? RequestStartUpdate;
+
+        public Action<VirtualMachineViewModel>? RequestDelete;
+
         public VirtualMachineModel Model { get; }
 
         public ObservableCollection<GuestOSModel> GuestOSTypes => _ctx.GuestOSTypes;
@@ -124,7 +127,7 @@ namespace VMUpdater.ViewModels
                 AllowMultiple = false
             });
 
-            var file = files.FirstOrDefault();
+            var file = files[0];
             if (file != null)
             {
                 VMPath = file.Path.LocalPath;
@@ -191,6 +194,8 @@ namespace VMUpdater.ViewModels
             }
         }
 
+        [RelayCommand]
+        private async Task DeleteAsync() => RequestDelete?.Invoke(this);
         #endregion
 
         #region Properties
