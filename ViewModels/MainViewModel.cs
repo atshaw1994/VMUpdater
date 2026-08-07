@@ -22,7 +22,6 @@ using VMUpdater.Models;
 using VMUpdater.Services.Abstractions;
 using VMUpdater.Services.Orchestration;
 using VMUpdater.Views;
-using System.Linq;
 
 namespace VMUpdater.ViewModels
 {
@@ -261,6 +260,7 @@ namespace VMUpdater.ViewModels
                     {
                         var vmViewModel = CreateVMViewModel(vmModel);
                         vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+                        vmViewModel.RequestDelete += async (vm) => await RemoveVirtualMachineAsync(vm);
                         VirtualMachines.Add(vmViewModel);
                         newMachinesCount++;
                         await _services.VmRepository.SaveAsync(vmModel);
@@ -346,6 +346,7 @@ namespace VMUpdater.ViewModels
             var newItemViewModel = CreateVMViewModel(newModel);
             newItemViewModel.IsExpanded = true;
             newItemViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+            newItemViewModel.RequestDelete += async (vm) => await RemoveVirtualMachineAsync(vm);
 
             VirtualMachines.Add(newItemViewModel);
             RefreshFilteredMachines();
@@ -612,6 +613,7 @@ namespace VMUpdater.ViewModels
                 vmViewModel.HypervisorType = Hypervisors.FirstOrDefault(h => h.Id == hypervisor.Id) ?? hypervisor;
                 vmViewModel.GuestOSType = GuestOSTypes.FirstOrDefault(os => os.Id == guestOS.Id) ?? guestOS;
                 vmViewModel.RequestStartUpdate += async (vm, forceUpdate) => await ExecuteStartUpdate(vm, forceUpdate);
+                vmViewModel.RequestDelete += async (vm) => await RemoveVirtualMachineAsync(vm);
                 vmViewModel.IsUpdateEnabled = model.IsUpdateEnabled;
                 vmViewModel.CalculateNextScheduledUpdate();
 
